@@ -164,7 +164,7 @@ test("mobile UI and every pre-cache asset exist in the repository", () => {
   assert.match(html, /name="apple-mobile-web-app-capable" content="yes"/);
   assert.match(html, /id="offlineStatus"/);
   assert.match(html, /id="offlineHelpStatus"/);
-  assert.match(html, /src="offline-pwa.js\\?v=1\\.2\\.2"/);
+  assert.ok(html.includes('src="offline-pwa.js?v=1.2.2"'));
   assert.match(html, /visibilitychange/);
   const assets = [...workerCode.matchAll(/"(\.\/[^"]+)"/g)].map(match => match[1]);
   assert.ok(assets.includes("./offline-pwa.js"));
