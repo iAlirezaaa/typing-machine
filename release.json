@@ -1,8 +1,8 @@
 {
   "name": "Digital Ink",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "status": "final",
-  "released_at": "2026-11-16",
-  "notes": "Original vintage typewriter app icon; CC0 recorded key, carriage-return and paper sounds with offline playback.",
+  "released_at": "2026-11-17",
+  "notes": "OFL Parastoo Persian print font with connected-word ink fading, deterministic baseline variation and paper archive previews.",
   "requires_online_to_update": true
 }
