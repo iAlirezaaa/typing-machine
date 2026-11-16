@@ -12,7 +12,7 @@ const files = [
   "sw.js", "manifest.webmanifest", "release.json",
   "LICENSE", "THIRD_PARTY_NOTICES.md"
 ];
-const dirs = ["fonts", "icons"];
+const dirs = ["fonts", "icons", "sounds"];
 
 const sourceFiles = [];
 for (const name of files) sourceFiles.push(name);
