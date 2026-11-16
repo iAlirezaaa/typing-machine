@@ -41,6 +41,12 @@ The new app icon features a vintage mechanical typewriter and an aged sheet of p
 
 Sound licensing and source credits: [Third-party notices](THIRD_PARTY_NOTICES.md).
 
+## Persian mechanical letterpress (v1.3.1)
+
+Persian notes now use **Parastoo**, a locally bundled, OFL-licensed printed-text font rather than the previous clean modern sans-serif. Each **connected Persian word** has subtle, reproducible height variation and uneven ribbon pressure, with light ink fading and texture. Arabic-script letters and ZWNJ remain connected; splitting and jiggling individual Persian letters would damage their shaping.
+
+The effect appears in the typewriter paper **and** in saved paper previews, without altering the text saved in your notes. Latin typewriter text, selection, search, keyboard caret and export formats remain unchanged. All font files work offline.
+
 ## Features
 
 - Persian and English writing with automatic text direction and joined Persian letters.
