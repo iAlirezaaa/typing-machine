@@ -4,7 +4,7 @@
  * Notes are never stored here: they remain in the browser's localStorage.
  */
 const CACHE_PREFIX = "typing-machine-";
-const CACHE = "typing-machine-v5";
+const CACHE = "typing-machine-v6";
 const ASSETS = [
   "./", "./index.html", "./offline-pwa.js", "./mobile.css", "./manifest.webmanifest",
   "./icons/icon.svg", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png",
