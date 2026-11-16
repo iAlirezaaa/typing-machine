@@ -1,3 +1,7 @@
+/* A hidden find bar must not intercept touches on toolbar buttons. */
+#findbar { pointer-events: none; }
+body.finding #findbar { pointer-events: auto; }
+
 /* Digital Ink mobile layout: keep the desktop paper machine unchanged.
    On touch screens the archive becomes a readable vertical stack of pages. */
 @media (max-width: 680px) {
