@@ -47,9 +47,13 @@ node scripts/build.mjs
 node scripts/build.mjs --check
 ```
 
-The committed `dist/` directory contains a complete standalone static distribution: `index.html`, `mobile.css`, `offline-pwa.js`, `sw.js`, `manifest.webmanifest`, `release.json`, all bundled `fonts/` and `icons/`, license notices, and `build-info.json`. Host `dist/` as an HTTPS static folder, or serve it locally for browser testing. GitHub Pages continues to deploy the source repository root.
+The committed `dist/` directory contains the original app icon plus bundled CC0 typewriter recordings and a complete standalone static distribution: `index.html`, `mobile.css`, `offline-pwa.js`, `sw.js`, `manifest.webmanifest`, `release.json`, all bundled `fonts/`, `icons/`, and `sounds/`, license notices, and `build-info.json`. Host `dist/` as an HTTPS static folder, or serve it locally for browser testing. GitHub Pages continues to deploy the source repository root.
 
 GitHub Actions verifies the checked-in distribution and publishes an artifact ZIP. The source and built app require no npm runtime dependencies, backend, account, cloud notes or paid hosting.
+
+## Original icon and downloaded real typewriter audio
+
+`icons/icon-art.webp.b64` is the canonical original app illustration. `scripts/vendor-media.py` validates its SHA-256 and renders icon PNG/SVG variants. The same script downloads and checks five small WAV recordings (3 key strikes, carriage return, paper movement) from their CC0-licensed upstream source, pinned by Git blob hashes. These files are distributed in the repository and in `dist/sounds/`, not loaded from third-party servers at runtime. The audio engine prefers the decoded recordings and retains its original synthetic sounds as a fallback, including a synthesized margin bell. Update `sw.js` precache and Windows `serve.py` when adding any new sound type.
 
 ## Windows desktop installer (GitHub Release)
 

@@ -93,7 +93,7 @@ test("mobile archive, saving, downloads, and offline reload", { timeout: 125000 
         folder: box("#drawer .folder-back"),
         backingPaper: getComputedStyle(document.querySelector("#drawer .folder-back"), "::before").content,
         currentCss: [...document.querySelectorAll('link[rel="stylesheet"]')]
-          .some(el => el.href.includes("mobile.css?v=1.2.2"))
+          .some(el => el.href.includes("mobile.css?v=1.3.0"))
       };
     });
     assert.ok(folderGeometry.currentCss, "The latest mobile stylesheet must bypass stale service worker caches");
@@ -152,6 +152,27 @@ test("mobile archive, saving, downloads, and offline reload", { timeout: 125000 
     }));
     assert.equal(caret.start, caret.end, "Tap on the paper should jump to the final line");
     assert.equal(caret.focused, true, "Tap should focus the keyboard input");
+    // Real recorded audio must decode and be present in the offline shell,
+    // independent of whether a service worker serves it from cache (where
+    // page.waitForResponse is not a reliable test on every browser).
+    await page.keyboard.type("x", { delay: 60 });
+    const decodedClips = await page.evaluate(async () => {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      try {
+        const names = ["key-1.wav", "key-2.wav", "key-3.wav", "carriage-return.wav", "paper-select.wav"];
+        return await Promise.all(names.map(async name => {
+          const r = await fetch("sounds/" + name);
+          if (!r.ok) throw new Error("Missing offline typewriter sound: " + name);
+          const buffer = await ctx.decodeAudioData(await r.arrayBuffer());
+          return { name, duration: buffer.duration };
+        }));
+      } finally {
+        await ctx.close();
+      }
+    });
+    assert.equal(decodedClips.length, 5);
+    for (const clip of decodedClips)
+      assert.ok(clip.duration > 0.02, "Sound does not decode: " + clip.name);
     const cursor = await page.locator("#caret").evaluate(el =>
       getComputedStyle(el, "::before").display);
     assert.equal(cursor, "block", "A dark typing caret must be visible on mobile");

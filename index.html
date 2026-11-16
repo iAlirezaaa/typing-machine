@@ -6,16 +6,16 @@
 <title>Digital Ink</title>
 <meta name="description" content="A quiet typewriter for your notes.">
 <meta name="application-name" content="Digital Ink">
-<meta name="app-version" content="1.2.2">
+<meta name="app-version" content="1.3.0">
 <meta name="theme-color" content="#fbf8f0">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Digital Ink">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
-<link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="manifest" href="manifest.webmanifest?v=1.3.0">
+<link rel="icon" href="icons/icon.svg?v=1.3.0" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png?v=1.3.0" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-192.png?v=1.3.0">
 <link rel="stylesheet" href="fonts/fonts.css">
 <style>
   :root {
@@ -501,7 +501,7 @@
   body.typing #offlineStatus { opacity: .35; }
   @media (max-width: 640px) { #offlineStatus { bottom: calc(9px + env(safe-area-inset-bottom, 0px)); left: 10px; } }
 </style>
-<link rel="stylesheet" href="mobile.css?v=1.2.2">
+<link rel="stylesheet" href="mobile.css?v=1.3.0">
 </head>
 <body class="boot">
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -582,6 +582,7 @@
     <div class="sp-head"><div class="sp-status">Digital Ink · a quiet typewriter for your notes</div><button class="sp-x" id="helpClose" title="Close (Esc)">✕</button></div>
     <div class="help-sheet">
     <div>A quiet typewriter for your notes. Everything saves automatically in this browser. Use <b>Save &amp; backup</b> (Ctrl+S) now and then to keep a copy.</div>
+    <div>Typewriter sounds use locally bundled recordings of real keys and carriage returns. Turn them on/off with <b>sound</b> and adjust the volume with the slider. No audio is sent to any server; the app can play them offline.</div>
     <h3>App version &amp; updates</h3>
     <div><span id="appVersion">Digital Ink</span> · <span id="appUpdateStatus" aria-live="polite">Up to date</span></div>
     <div class="sp-row"><button type="button" class="sp-btn" id="checkUpdates">Check for updates</button><button type="button" class="sp-btn pri" id="applyUpdate" hidden>Install ready update</button></div>
@@ -1076,8 +1077,15 @@
   }
 
   /* ---------------- typing ---------------- */
-  let typingTimer, strikeTimer;
+  let typingTimer, strikeTimer, lastPhysicalKeyAt = -1e6;
   function onInput(e) {
+    // iOS virtual keyboards can send input events without a corresponding
+    // keydown. Avoid double sounds if a real keydown already played one.
+    if (compact() && e?.isTrusted && performance.now() - lastPhysicalKeyAt > 90) {
+      if (e.inputType === "insertText" && e.data) sound.key(e.data === " ");
+      else if (e.inputType === "insertLineBreak" || e.inputType === "insertParagraph") sound.ret();
+      else if (e.inputType === "deleteContentBackward") sound.back();
+    }
     if (!cur) return;
     cur.text = input.value; cur.updated = Date.now(); cur.caret = input.selectionEnd;
     body.classList.add("started", "typing");
@@ -1147,6 +1155,7 @@
 
   input.addEventListener("keydown", e => {
     lastKey = e.key;
+    if (e.key.length === 1 || e.key === "Backspace" || e.key === "Enter") lastPhysicalKeyAt = performance.now();
     if (!["Shift", "Control", "Alt", "Meta"].includes(e.key)) viewOffset = 0;   // any key brings the caret back under the lamp
     if (!["ArrowUp", "ArrowDown", "PageUp", "PageDown"].includes(e.key)) goalX = null;
     if (e.key.length === 1 || e.key === "Enter" || e.key === "Backspace") { heat = Math.min(1, heat + .07); if (e.key === "Enter") jolt(); }
@@ -1779,6 +1788,47 @@
   const sound = (() => {
     let ac = null, noise = null, master = null;
     let acted = false;   // browsers only allow audio after the first key press or click
+    // The bundled WAV files are recordings of real mechanical typewriters.
+    // Load/decode only after a trusted user gesture to satisfy iOS autoplay
+    // rules. If decoding or storage fails, the synthesizer remains a fallback.
+    const recordedPaths = {
+      keys: ["sounds/key-1.wav", "sounds/key-2.wav", "sounds/key-3.wav"],
+      carriage: ["sounds/carriage-return.wav"],
+      paper: ["sounds/paper-select.wav"]
+    };
+    const sampleBuffers = new Map();
+    let loadingRecorded = false;
+    function loadRecorded() {
+      if (!ac || loadingRecorded) return;
+      loadingRecorded = true;
+      const files = [...new Set(Object.values(recordedPaths).flat())];
+      files.forEach(async file => {
+        try {
+          const response = await fetch(new URL(file, document.baseURI), { cache: "force-cache" });
+          if (!response.ok) throw new Error("Missing offline sample " + file);
+          const buffer = await ac.decodeAudioData(await response.arrayBuffer());
+          sampleBuffers.set(file, buffer);
+        } catch (error) {
+          // Quiet fallback: no network, unsupported codec or evicted cache.
+        }
+      });
+    }
+    function playRecorded(group, gain = .7, pitch = 0.04) {
+      if (!ac || !master || !settings.sound) return false;
+      const files = (recordedPaths[group] || []).filter(path => sampleBuffers.has(path));
+      if (!files.length) return false;
+      const file = files[Math.floor(Math.random() * files.length)];
+      const source = ac.createBufferSource();
+      source.buffer = sampleBuffers.get(file);
+      source.playbackRate.value = 1 + (Math.random() * 2 - 1) * pitch;
+      const level = ac.createGain();
+      level.gain.value = gain;
+      source.connect(level).connect(master);
+      source.onended = () => { source.disconnect(); level.disconnect(); };
+      source.start();
+      return true;
+    }
+
     for (const ev of ["keydown", "mousedown", "touchstart"]) addEventListener(ev, e => { if (e.isTrusted) acted = true; }, { capture: true });
     const ctx = () => {
       if (!settings.sound) return null;
@@ -1798,6 +1848,7 @@
           const d = noise.getChannelData(0);
           for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
         }
+        loadRecorded();
         return ac;
       } catch (e) { return null; }
     };
@@ -1815,7 +1866,9 @@
     };
     return {
       key(space) {             // key lever click → type slug hits the platen → the machine body answers
-        if (!ctx()) return; const t = ac.currentTime, j = Math.random();
+        if (!ctx()) return;
+        if (playRecorded("keys", space ? .48 : .72, .065)) return;
+        const t = ac.currentTime, j = Math.random();
         const v = .82 + Math.random() * .32, k2 = Math.random();
         burst(t, 2200 + k2 * 900, 1.6, .09 * v, .012);                                     // key lever bottoms out
         if (space) {                                                                        // space bar: no type bar, just the carriage
@@ -1830,27 +1883,27 @@
         burst(ti + .028 + j * .012, 5200 + k2 * 900, 5, .045 * v, .012);                   // escapement tick
         if (Math.random() < .06) burst(ti + .012, 2800, 2, .08 * v, .01);                  // now and then a little rattle
       },
-      release() { if (!ctx()) return; const t = ac.currentTime; burst(t, 3000 + Math.random() * 600, 2, .07, .014); },
+      release() { if (!ctx()) return; if (recordedPaths.keys.some(k => sampleBuffers.has(k))) return; const t = ac.currentTime; burst(t, 3000 + Math.random() * 600, 2, .07, .014); },
       tab() {                  // the carriage skids to the next tab stop
-        if (!ctx()) return; const t = ac.currentTime;
+        if (!ctx()) return; if (playRecorded("carriage", .38, .07)) return; const t = ac.currentTime;
         for (let i = 0; i < 5; i++) burst(t + i * .022, 3000 - i * 150, 3, .12, .015);
         burst(t, 700, .7, .12, .14, "lowpass"); thump(t + .12, 100, .4, .07); burst(t + .12, 1300, 1, .25, .03);
       },
-      back() { if (!ctx()) return; const t = ac.currentTime; burst(t, 1500, 1.5, .25, .03); thump(t, 110, .25, .05); },
+      back() { if (!ctx()) return; if (playRecorded("keys", .56, .07)) return; const t = ac.currentTime; burst(t, 1500, 1.5, .25, .03); thump(t, 110, .25, .05); },
       ret() {
-        if (!ctx()) return; const t = ac.currentTime;
+        if (!ctx()) return; if (playRecorded("carriage", .78, .03)) return; const t = ac.currentTime;
         for (let i = 0; i < 7; i++) burst(t + i * .032, 2600 + i * 120, 3, .16, .02);
         burst(t, 600, .7, .18, .3, "lowpass");
         thump(t + .26, 85, .7, .12); burst(t + .26, 1200, 1, .35, .05);
       },
-      feed() { if (!ctx()) return; const t = ac.currentTime; for (let i = 0; i < 14; i++) burst(t + i * .045, 1800 + (i % 3) * 300, 2.5, .12, .02); burst(t, 400, .6, .12, .6, "lowpass"); },
+      feed() { if (!ctx()) return; if (playRecorded("paper", .45, .02)) return; const t = ac.currentTime; for (let i = 0; i < 14; i++) burst(t + i * .045, 1800 + (i % 3) * 300, 2.5, .12, .02); burst(t, 400, .6, .12, .6, "lowpass"); },
       rustle() {               // a sheet slides past the others
-        if (!ctx()) return; const t = ac.currentTime;
+        if (!ctx()) return; if (playRecorded("paper", .37, .06)) return; const t = ac.currentTime;
         for (let i = 0; i < 9; i++) burst(t + i * .018 + Math.random() * .01, 1600 + Math.random() * 2600, .9, .035 + Math.random() * .03, .03);
         burst(t, 3200, .5, .05, .22, "bandpass");
       },
       folder() {               // manila folder opened, page slid in, the flap settles
-        if (!ctx()) return; const t = ac.currentTime;
+        if (!ctx()) return; if (playRecorded("paper", .38, .04)) return; const t = ac.currentTime;
         burst(t, 900, .5, .1, .42, "lowpass");
         for (let i = 0; i < 10; i++) burst(t + .05 + i * .03, 1900 + Math.random() * 2000, 1, .03, .03);
         thump(t + .43, 68, .28, .13); burst(t + .43, 420, .8, .16, .08);
@@ -2118,6 +2171,6 @@
   }
 })();
 </script>
-<script src="offline-pwa.js?v=1.2.2" defer></script>
+<script src="offline-pwa.js?v=1.3.0" defer></script>
 </body>
 </html>
