@@ -1,6 +1,6 @@
-# Typing Machine · ماشین تایپ
+# Digital Ink · ماشین تایپ
 
-A quiet, vintage-inspired typewriter for Persian and English notes. Warm paper, a moving carriage, a soft pool of light, and mechanical key sounds — in your browser.
+**Digital Ink** is a quiet, vintage-inspired typewriter for Persian and English notes. Warm paper, a moving carriage, a soft pool of light, and mechanical key sounds — in your browser.
 
 **Website:** [ialirezaaa.github.io/typing-machine](https://ialirezaaa.github.io/typing-machine/)
 
@@ -40,6 +40,14 @@ The public website can be installed on iPhone, iPad and supported Android phones
 If the indicator says **offline not ready**, reconnect to the internet and use **Help → Check / repair**. The cache is verified on launch and can repair missing files. The offline copy may be evicted by the device under storage pressure; it cannot be guaranteed indefinitely.
 
 Notes are saved in the device's browser storage, **not uploaded** to GitHub or a server. Home-screen apps and Safari may have separate storage; notes do not automatically transfer or sync. Use **Save & backup → JSON** regularly, especially before clearing website data or reinstalling the app.
+
+## Digital Ink on phones
+
+The home-screen app now has a mobile-first notes archive and a scrollable **Save & backup** panel. On iPhone, exports can use the iOS **Share / Save to Files** sheet; supported browsers use the normal download option otherwise. The original note storage keys are preserved across the rename from Lamplight.
+
+When a newer release is marked **final**, open **Help → Check for updates**. Once all files are ready, select **Install ready update** or the top-left **update** button. Updates never deliberately interrupt typing.
+
+**Prebuilt release:** the checked-in [`dist/`](dist) directory is a complete static build with fonts and icons. Recreate it with `node scripts/build.mjs`; verify using `node scripts/build.mjs --check`. GitHub Actions also provides a downloadable build artifact. See the [release and mobile update guide](docs/releasing.md).
 
 ## Run locally
 

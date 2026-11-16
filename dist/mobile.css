@@ -1,0 +1,124 @@
+/* A hidden find bar must not intercept touches on toolbar buttons. */
+#findbar { pointer-events: none; }
+body.finding #findbar { pointer-events: auto; }
+
+/* Digital Ink mobile layout: keep the desktop paper machine unchanged.
+   On touch screens the archive becomes a readable vertical stack of pages. */
+@media (max-width: 680px) {
+  html, body { width: 100%; max-width: 100%; overscroll-behavior: none; }
+  #input {
+    left: 0; top: 0; width: 1px; height: 1px;
+    font-size: 16px; clip-path: inset(50%); pointer-events: none;
+  }
+  #hudL {
+    top: calc(6px + env(safe-area-inset-top, 0px));
+    left: 8px; width: calc(100% - 16px); max-width: none;
+    justify-content: flex-start; gap: 3px;
+  }
+  #hudL button { min-height: 38px; min-width: 42px; padding-inline: 8px; background: rgba(253,250,242,.82); }
+  #hudL #title { display: none; }
+  #hudR {
+    top: calc(48px + env(safe-area-inset-top, 0px));
+    left: 6px; right: 6px; text-align: left;
+  }
+  #hudR #stats { display: none; }
+  #hudR > div:last-child {
+    display: flex; align-items: center; gap: 2px;
+    overflow-x: auto; overflow-y: hidden; max-width: 100%;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  }
+  #hudR > div:last-child::-webkit-scrollbar { display: none; }
+  #hudR button { flex: none; min-height: 35px; min-width: 38px; background: rgba(253,250,242,.8); }
+  #hudR #vol { flex: 0 0 46px; margin-right: 3px; }
+  #findbar { width: calc(100% - 20px); max-width: 460px; top: calc(92px + env(safe-area-inset-top, 0px)); }
+  #findInput { flex: 1; min-width: 0; width: 100%; font-size: 16px; min-height: 40px; }
+  #hint { display: none; }
+
+  /* Native-height dialogs: the old three-card column could extend beyond the viewport. */
+  #savePanel, #panel {
+    width: calc(100% - 20px); max-width: 510px;
+    max-height: calc(100dvh - 54px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    overflow-y: auto; overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px 13px 13px;
+  }
+  #savePanel .dr-tab, #panel .dr-tab { position: sticky; top: -16px; width: fit-content; margin-bottom: 4px; z-index: 1; }
+  #savePanel .sp-cards { grid-template-columns: minmax(0,1fr); padding: 5px; gap: 8px; }
+  #savePanel .sp-card { padding: 11px 12px; min-width: 0; transform: none; }
+  #savePanel .sp-card:hover { transform: none; }
+  #savePanel .sp-ic { display: none; }
+  #savePanel .sp-card h3 { margin-bottom: 2px; }
+  #savePanel .sp-name { white-space: normal; overflow-wrap: anywhere; font-size: 13px; }
+  #savePanel .sp-meta { margin: 4px 0 7px; padding-top: 3px; }
+  #savePanel .sp-row .sp-btn { min-height: 42px; flex: 1; }
+  #savePanel .sp-head { position: sticky; top: 0; z-index: 2; background: #ead9b3; padding: 6px 0; }
+  #savePanel .sp-foot { margin-bottom: 0; }
+  #panel .help-sheet { max-height: none; padding: 14px; }
+  #panel .sp-head { position: sticky; top: 0; z-index: 2; padding: 7px 0; background: #ead9b3; }
+  #panel td:first-child { width: auto; white-space: normal; }
+  #mechPanel { max-height: calc(100dvh - 40px); overflow: auto; overscroll-behavior: contain; }
+  #mechPanel .mech-sheet { max-height: 58dvh; }
+
+  /* Archive pages: legible, tappable cards instead of inaccessible tiny coverflow. */
+  #drawer { background: #f5efe3; }
+  #drawer .folder-back { display: none; }
+  #drawer #shelf {
+    position: absolute; left: 0; top: calc(18px + env(safe-area-inset-top, 0px));
+    bottom: calc(43dvh + env(safe-area-inset-bottom, 0px));
+    width: 100%; height: auto; margin: 0;
+    display: flex; flex-direction: column; gap: 9px;
+    overflow-x: hidden; overflow-y: auto; padding: 6px 12px 16px;
+    -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain;
+    scroll-snap-type: none; perspective: none;
+    -webkit-mask-image: none; mask-image: none;
+  }
+  #drawer .leaf {
+    flex: 0 0 106px; width: 100%; height: 106px; min-width: 0;
+    margin: 0; opacity: 1 !important; transform: none !important;
+    border-radius: 4px; scroll-snap-align: none; box-shadow: var(--paper-shadow);
+  }
+  #drawer .leaf.cur { outline: 1px solid rgba(140,74,58,.36); }
+  #drawer .leaf .pg {
+    padding: 13px 110px 9px 12px; font: 13px/1.5 var(--type);
+    overflow: hidden; -webkit-mask-image: none; mask-image: none;
+    overflow-wrap: anywhere;
+  }
+  #drawer .leaf .stampd { top: 8px; right: 8px; font: 10px var(--type); }
+  #drawer .leaf .clip2 { display: none; }
+  #drawer .leaf .acts, #drawer .leaf.center .acts {
+    opacity: 1; pointer-events: auto;
+    left: auto; right: 7px; top: auto; bottom: 8px; gap: 5px;
+  }
+  #drawer .leaf .acts button { min-height: 40px; min-width: 44px; padding: 6px 8px; }
+  #drawer .shelf-empty { padding: 16px 2px; white-space: normal; text-align: center; }
+  #drawer .pocket {
+    position: absolute; width: 100%; left: 0; top: auto; bottom: 0;
+    height: calc(43dvh + env(safe-area-inset-bottom, 0px));
+    max-height: none; min-height: 0;
+    transform: translateY(110%); border-radius: 12px 12px 0 0;
+    padding: 22px 12px calc(14px + env(safe-area-inset-bottom, 0px));
+    overflow-y: auto; overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch; gap: 10px;
+  }
+  body.drawer #drawer .pocket { transform: translateY(0); }
+  #drawer .pocket::before { width: 78px; height: 12px; }
+  #drawer .file-label { display: none; }
+  #drawer .pocket-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; }
+  #drawer .dr-search { flex: none; min-width: 0; grid-column: 1; grid-row: 1; }
+  #drawer #search { font-size: 16px; min-height: 44px; }
+  #drawer #dClose { grid-column: 2; grid-row: 1; min-width: 44px; min-height: 44px; }
+  #drawer #tags { grid-column: 1 / -1; grid-row: 2; max-height: 15dvh; overflow-y: auto; }
+  #drawer .dr-sub { grid-column: 1 / -1; white-space: normal; }
+  #drawer #dNew, #drawer #dSave { min-height: 44px; }
+  #drawer .pocket-hint { display: none; }
+
+  #toast { bottom: calc(12px + env(safe-area-inset-bottom, 0px)); max-width: calc(100vw - 24px); min-width: 0; padding: 10px; }
+  #offlineStatus { bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
+  body.drawer #offlineStatus, body.saving #offlineStatus, body.panel #offlineStatus { display: none; }
+}
+
+@media (max-width: 360px) {
+  #savePanel, #panel { padding-inline: 9px; }
+  #drawer .pocket { padding-inline: 8px; }
+  #drawer .leaf .pg { padding-right: 100px; }
+}

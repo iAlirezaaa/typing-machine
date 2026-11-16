@@ -97,3 +97,158 @@
   showStatus();
   checkOffline();
 })();
+
+
+/* Finalized-release updater. Never replace a live writing session without
+ * an explicit user action: new workers wait until "Install ready update". */
+(() => {
+  "use strict";
+  const appVersion = document.querySelector('meta[name="app-version"]')?.content || "unknown";
+  const versionEl = document.getElementById("appVersion");
+  const status = document.getElementById("appUpdateStatus");
+  const checkButton = document.getElementById("checkUpdates");
+  const applyButton = document.getElementById("applyUpdate");
+  const toolbarButton = document.getElementById("btnUpdate");
+  if (!status || !checkButton || !applyButton || !toolbarButton) return;
+  if (versionEl) versionEl.textContent = "Digital Ink v" + appVersion;
+
+  const supported = "serviceWorker" in navigator && location.protocol === "https:" ||
+    ("serviceWorker" in navigator && /^(localhost|127\.0\.0\.1)$/.test(location.hostname));
+  let currentRegistration = null;
+  let updateReady = false;
+  let applying = false;
+  let checking = false;
+
+  function report(message) { status.textContent = message; }
+  function setReady(ready, version = "") {
+    updateReady = ready;
+    applyButton.hidden = !ready;
+    toolbarButton.hidden = !ready;
+    if (ready) {
+      toolbarButton.textContent = "update";
+      toolbarButton.title = "Digital Ink " + version + " is ready to install";
+      report("Version " + version + " is ready");
+    }
+  }
+  function compareVersions(a, b) {
+    const x = String(a).split(".").map(Number), y = String(b).split(".").map(Number);
+    if (x.some(v => !Number.isFinite(v)) || y.some(v => !Number.isFinite(v))) return 0;
+    for (let i = 0; i < Math.max(x.length, y.length); i++) {
+      if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0) ? 1 : -1;
+    }
+    return 0;
+  }
+
+  async function getRegistration() {
+    return (await navigator.serviceWorker.getRegistration("./")) ||
+      await navigator.serviceWorker.ready;
+  }
+
+  async function waitForInstalled(registration) {
+    if (registration.waiting) return true;
+    // update() may resolve before its new worker has finished pre-caching.
+    const installing = registration.installing;
+    if (!installing) return false;
+    return await new Promise(resolve => {
+      const timeout = setTimeout(() => { installing.removeEventListener("statechange", onState); resolve(false); }, 15000);
+      const onState = () => {
+        if (installing.state === "installed" || installing.state === "redundant" ||
+            installing.state === "activated") {
+          clearTimeout(timeout);
+          installing.removeEventListener("statechange", onState);
+          resolve(!!registration.waiting);
+        }
+      };
+      installing.addEventListener("statechange", onState);
+      onState();
+    });
+  }
+
+  async function checkForUpdates(silent = false) {
+    if (!supported) { report("Updates unavailable in this browser"); return; }
+    if (!navigator.onLine) { report("Connect to check for updates"); return; }
+    if (checking || applying) return;
+    checking = true;
+    if (!silent) report("Checking finalized releases…");
+    try {
+      // release.json is never served from the service-worker cache.
+      const response = await fetch(new URL("release.json", location.href), { cache: "no-store" });
+      if (!response.ok) throw Error("Release metadata unavailable");
+      const release = await response.json();
+      if (release.status !== "final" || typeof release.version !== "string") {
+        setReady(false);
+        report("No finalized update available");
+        return;
+      }
+      const newerRelease = compareVersions(release.version, appVersion) > 0;
+      const registration = await getRegistration();
+      currentRegistration = registration;
+      // A newly-fetched HTML page can already have the latest version while
+      // still being controlled by the old service worker. Offer activation
+      // of any waiting worker for this finalized release in that case too.
+      if (!newerRelease && !registration.waiting && !registration.installing) {
+        setReady(false);
+        report("Up to date · v" + appVersion);
+        return;
+      }
+      await registration.update();
+      const installed = await waitForInstalled(registration);
+      if (installed && registration.waiting) {
+        setReady(true, release.version);
+      } else {
+        setReady(false);
+        report("Version " + release.version + " is downloading. Check again shortly.");
+      }
+    } catch (error) {
+      report("Couldn't check updates · try again online");
+    } finally {
+      checking = false;
+    }
+  }
+
+  function applyUpdate() {
+    if (!updateReady || applying || !currentRegistration?.waiting) {
+      report("Update not ready. Check again.");
+      return;
+    }
+    // The main editor flushes its local note state synchronously.
+    window.dispatchEvent(new Event("digitalink:before-update"));
+    applying = true;
+    report("Installing update…");
+    applyButton.disabled = true;
+    toolbarButton.disabled = true;
+    currentRegistration.waiting.postMessage({ type: "ACTIVATE_UPDATE" });
+  }
+  checkButton.addEventListener("click", () => checkForUpdates(false));
+  applyButton.addEventListener("click", applyUpdate);
+  toolbarButton.addEventListener("click", () => {
+    // The toolbar is an explicit install action, not a background reload.
+    applyUpdate();
+  });
+  if (supported) {
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (applying) location.reload();
+    });
+    navigator.serviceWorker.ready.then(reg => {
+      currentRegistration = reg;
+      reg.addEventListener("updatefound", () => {
+        const worker = reg.installing;
+        if (!worker) return;
+        worker.addEventListener("statechange", () => {
+          if (worker.state === "installed" && reg.waiting && navigator.onLine) {
+            checkForUpdates(true);
+          }
+        });
+      });
+    }).catch(() => {});
+    window.addEventListener("online", () => checkForUpdates(true));
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") checkForUpdates(true);
+    });
+    // Only check periodically while the app is open and visible.
+    setInterval(() => {
+      if (document.visibilityState === "visible") checkForUpdates(true);
+    }, 30 * 60 * 1000);
+    checkForUpdates(true);
+  } else report("Install as a web app to receive updates");
+})();

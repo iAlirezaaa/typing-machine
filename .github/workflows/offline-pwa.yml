@@ -1,21 +1,29 @@
-name: Offline PWA regression tests
+name: Digital Ink - release and mobile regression
 
 on:
   push:
     branches: [main]
     paths:
       - 'index.html'
+      - 'mobile.css'
       - 'offline-pwa.js'
       - 'sw.js'
       - 'manifest.webmanifest'
+      - 'release.json'
+      - 'dist/**'
+      - 'scripts/**'
       - 'tests/**'
       - '.github/workflows/offline-pwa.yml'
   pull_request:
     paths:
       - 'index.html'
+      - 'mobile.css'
       - 'offline-pwa.js'
       - 'sw.js'
       - 'manifest.webmanifest'
+      - 'release.json'
+      - 'dist/**'
+      - 'scripts/**'
       - 'tests/**'
       - '.github/workflows/offline-pwa.yml'
   workflow_dispatch:
@@ -24,12 +32,38 @@ permissions:
   contents: read
 
 jobs:
-  offline:
-    name: Precache and airplane-mode checks
+  build-and-offline:
+    name: Offline storage and committed build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test tests/offline-sw.test.mjs
+      - name: Offline and release regression tests
+        run: node --test tests/offline-sw.test.mjs tests/mobile-regression.test.mjs
+      - name: Verify the complete built release matches the source
+        run: node scripts/build.mjs --check
+      - name: Offer an installable build ZIP from GitHub Actions
+        uses: actions/upload-artifact@v4
+        with:
+          name: digital-ink-static-build
+          path: dist/
+          if-no-files-found: error
+          include-hidden-files: true
+
+  mobile-browser:
+    name: Mobile Chromium smoke test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser automation
+        run: npm install --no-save playwright@1.56.0
+      - name: Install headless Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run phone-sized archive, backup, and offline checks
+        run: node --test tests/mobile-e2e.mjs

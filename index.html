@@ -2,15 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Typing Machine</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Digital Ink</title>
 <meta name="description" content="A quiet typewriter for your notes.">
-<meta name="application-name" content="Typing Machine">
+<meta name="application-name" content="Digital Ink">
+<meta name="app-version" content="1.1.0">
 <meta name="theme-color" content="#fbf8f0">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Typing Machine">
+<meta name="apple-mobile-web-app-title" content="Digital Ink">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
@@ -500,6 +501,7 @@
   body.typing #offlineStatus { opacity: .35; }
   @media (max-width: 640px) { #offlineStatus { bottom: calc(9px + env(safe-area-inset-bottom, 0px)); left: 10px; } }
 </style>
+<link rel="stylesheet" href="mobile.css">
 </head>
 <body class="boot">
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -516,7 +518,7 @@
   <div id="machine" aria-hidden="true">
     <div id="platen"><i class="shaft l"></i><i class="knob l"></i><i class="roll"></i><i class="shaft r"></i><i class="knob r"></i></div>
     <div id="rail"><i class="scale"></i><i class="ptr" id="ptr"></i></div>
-    <div id="mbody"><span class="badge">LAMPLIGHT</span></div>
+    <div id="mbody"><span class="badge">DIGITAL INK</span></div>
   </div>
   <div id="bail"></div>
   <div id="knobTip"></div>
@@ -528,8 +530,9 @@
   <div id="hudL" class="ui fade">
     <button id="btnNotes" title="Notes (Ctrl+K)">notes</button>
     <button id="btnNew" title="New note (Alt+N)">+ new</button>
-    <button id="btnInstall" title="Install Typing Machine as an app on this computer" hidden>install</button>
+    <button id="btnInstall" title="Install Digital Ink as an app on this computer" hidden>install</button>
     <button id="btnSave" title="Save &amp; backup (Ctrl+S)"><span class="savedot"></span>save</button>
+    <button id="btnUpdate" title="A new app version is available" hidden>update</button>
     <span id="title" dir="auto"></span>
   </div>
   <div id="hudR" class="ui fade">
@@ -570,15 +573,19 @@
         <button class="sp-btn pri" id="dNew">+ New page</button>
         <button class="sp-btn" id="dSave">Save &amp; backup…</button>
       </div>
-      <div class="file-label">PERSONAL NOTES<small>typed by lamplight</small></div>
+      <div class="file-label">PERSONAL NOTES<small>typed by Digital Ink</small></div>
     </div>
   </aside>
 
   <div id="panel" role="dialog" aria-label="Help">
     <div class="dr-tab"><span class="dr-label">HELP</span></div>
-    <div class="sp-head"><div class="sp-status">Typing Machine · a quiet typewriter for your notes</div><button class="sp-x" id="helpClose" title="Close (Esc)">✕</button></div>
+    <div class="sp-head"><div class="sp-status">Digital Ink · a quiet typewriter for your notes</div><button class="sp-x" id="helpClose" title="Close (Esc)">✕</button></div>
     <div class="help-sheet">
     <div>A quiet typewriter for your notes. Everything saves automatically in this browser. Use <b>Save &amp; backup</b> (Ctrl+S) now and then to keep a copy.</div>
+    <h3>App version &amp; updates</h3>
+    <div><span id="appVersion">Digital Ink</span> · <span id="appUpdateStatus" aria-live="polite">Up to date</span></div>
+    <div class="sp-row"><button type="button" class="sp-btn" id="checkUpdates">Check for updates</button><button type="button" class="sp-btn pri" id="applyUpdate" hidden>Install ready update</button></div>
+    <div>Updates are installed only after you choose to update. Your notes stay on this device. Export a JSON backup before major changes.</div>
     <h3>Use on your phone without internet</h3>
     <div><b id="offlineHelpStatus">Checking offline files…</b> <button type="button" class="sp-btn" id="offlineRetry">Check / repair</button></div>
     <div><b>iPhone / iPad:</b> Open this website in Safari, tap Share, then <b>Add to Home Screen</b>. Launch the home-screen icon with an internet connection once; wait until the indicator says <b>offline ready</b>. You can then reopen it in Airplane Mode.</div>
@@ -615,7 +622,7 @@
     <h3>Right-to-left</h3>
     <div>In <b>auto</b>, every line follows its own language: Persian, Arabic or Hebrew lines run right-to-left, English lines left-to-right, and empty lines keep the direction of the line above. <b>RTL</b> or <b>LTR</b> forces one direction for the whole note. Search treats Arabic and Persian ی / ک and digits as the same.</div>
     <h3>Files</h3>
-    <div>Drop <code>.txt</code>, <code>.md</code> or a Typing Machine backup <code>.json</code> anywhere on the window to import.</div>
+    <div>Drop <code>.txt</code>, <code>.md</code> or a Digital Ink backup <code>.json</code> anywhere on the window to import.</div>
     </div>
   </div>
 
@@ -677,6 +684,9 @@
   const lampEls = ["lampPos"].map($);
   const NOTES_KEY = "lamplight.notes.v1", SET_KEY = "lamplight.settings.v1", OLD_KEY = "lamplight.text.v1";
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // The responsive archive uses a vertical list; it should never inherit
+  // desktop coverflow gestures or autofocus the mobile keyboard.
+  const compact = () => matchMedia("(max-width: 680px)").matches;
 
   /* ---------------- text helpers (RTL aware) ---------------- */
   const RTL_CH = /[֐-ࣿיִ-﷿ﹰ-﻿]/;
@@ -722,6 +732,7 @@
     if (now) go(); else { body.classList.add("unsaved"); saveTimer = setTimeout(go, 350); }
   }
   window.addEventListener("beforeunload", () => persist(true));
+  window.addEventListener("digitalink:before-update", () => persist(true));
   // On phones, switching away from an installed PWA may skip beforeunload.
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden") persist(true);
@@ -1036,7 +1047,7 @@
     $("words").textContent = w.toLocaleString() + (w === 1 ? " word" : " words");
     $("stats").title = `${v.length.toLocaleString()} characters · ~${mins} min read`;
     $("title").textContent = cur ? titleOf(cur) + (cur.pinned ? "  ·  pinned" : "") : "";
-    document.title = cur && cur.text.trim() ? titleOf(cur) + " — Typing Machine" : "Typing Machine";
+    document.title = cur && cur.text.trim() ? titleOf(cur) + " — Digital Ink" : "Digital Ink";
     $("btnDir").textContent = { auto: "auto ⇄", rtl: "RTL ←", ltr: "LTR →" }[settings.dir];
     $("btnDir").classList.toggle("on", settings.dir !== "auto");
     $("btnFace").textContent = settings.face;
@@ -1188,7 +1199,7 @@
 
   let dragging = false, anchor = 0;
   document.addEventListener("mousedown", e => {
-    if (e.button !== 0 || e.target.closest(".ui, #drawer, #panel, #savePanel, #mechPanel, #toast, #scrim")) return;
+    if (e.button !== 0 || e.target.closest(".ui, #drawer, #panel, #savePanel, #mechPanel, #toast, #scrim, #offlineStatus")) return;
     e.preventDefault();
     input.focus({ preventScroll: true });
     goalX = null;
@@ -1261,6 +1272,14 @@
   const shelf = $("shelf");
   function flow() {
     const leaves = shelf.querySelectorAll(".leaf"); if (!leaves.length) return;
+    if (compact()) {
+      leaves.forEach(el => {
+        el.classList.add("center");
+        el.style.transform = "none";
+        el.style.opacity = "1";
+      });
+      return;
+    }
     const mid = shelf.scrollLeft + shelf.clientWidth / 2;
     const step = leaves.length > 1 ? Math.abs(leaves[1].offsetLeft - leaves[0].offsetLeft) || leaves[0].offsetWidth : leaves[0].offsetWidth;
     let best = 0, bestD = 1e9;
@@ -1283,7 +1302,12 @@
   function scrollToLeaf(i, instantly) {
     const leaves = shelf.querySelectorAll(".leaf"); if (!leaves[i]) return;
     centerIdx = i;
-    const el = leaves[i], left = el.offsetLeft + el.offsetWidth / 2 - shelf.clientWidth / 2;
+    const el = leaves[i];
+    if (compact()) {
+      shelf.scrollTo({ top: Math.max(0, el.offsetTop - 10), behavior: "auto" });
+      return;
+    }
+    const left = el.offsetLeft + el.offsetWidth / 2 - shelf.clientWidth / 2;
     shelf.scrollTo({ left, behavior: instantly || reduced ? "auto" : "smooth" });
   }
   shelf.addEventListener("scroll", () => requestAnimationFrame(flow), { passive: true });
@@ -1298,11 +1322,12 @@
 
   function openDrawer() {
     if (body.classList.contains("drawer")) return;
+    if (compact()) document.activeElement?.blur();
     closePanel(); closeFind(true); body.classList.remove("saving", "mech");
     if (cur) { cur.caret = input.selectionEnd; persist(); }
     // the page is drawn off the typewriter to the right — a little lift, friction, then it glides away into the folder
     if (sheetAnim) sheetAnim.cancel();
-    if (!reduced) {
+    if (!reduced && !compact()) {
       const W = innerWidth, sr = sheet.getBoundingClientRect(), dx = W - sr.left + 40;
       sheetAnim = sheet.animate([{ translate: "0 0", scale: "1", rotate: "0deg", opacity: 1 },
                                  { translate: "6px -10px", scale: "1", rotate: ".4deg", opacity: 1, offset: .14 },
@@ -1315,6 +1340,7 @@
     renderList(cur && cur.id);
     // pages rise into place; the one you were typing drops in last
     // no snapping while sheets fly in (snap would chase their moving positions); settle on the current page after
+    if (compact()) return; // Vertical touch archive has no horizontal coverflow animation.
     shelf.classList.add("entering");
     const settleIdx = centerIdx;
     setTimeout(() => { shelf.classList.remove("entering"); if (body.classList.contains("drawer")) scrollToLeaf(settleIdx, true); }, reduced ? 0 : 1050);
@@ -1334,12 +1360,12 @@
       const a = sheetAnim; sheetAnim = null;
       if (back && !reduced) { a.reverse(); a.onfinish = () => a.cancel(); } else a.cancel();
     }
-    input.focus({ preventScroll: true });
+    if (!compact()) input.focus({ preventScroll: true });
   }
   const toggleDrawer = () => body.classList.contains("drawer") ? closeDrawer(true) : openDrawer();
   // take a page out of the folder: it lifts, then grows onto the typewriter
   function takeOut(leaf, n) {
-    if (reduced) { openNote(n); return; }
+    if (reduced || compact()) { openNote(n, { feed: false }); return; }
     const r = leaf.getBoundingClientRect();
     const fly = leaf.cloneNode(true); fly.classList.add("fly"); fly.classList.remove("center");
     Object.assign(fly.style, { left: r.left + "px", top: r.top + "px", width: r.width + "px", height: r.height + "px", transform: "none", opacity: "1" });
@@ -1362,6 +1388,7 @@
     const act = e.target.closest("[data-act]")?.dataset.act;
     if (act === "pin") { togglePin(n); return; }
     if (act === "del") { deleteNote(n); return; }
+    if (compact()) { takeOut(leaf, n); return; }
     const i = [...shelf.querySelectorAll(".leaf")].indexOf(leaf);
     if (i !== centerIdx) { scrollToLeaf(i); return; }
     takeOut(leaf, n);
@@ -1427,23 +1454,47 @@
 
   /* ---------------- files ---------------- */
   const safeName = s => s.replace(/[\\/:*?"<>|#]+/g, "").replace(/\s+/g, " ").trim().slice(0, 60) || "note";
-  function download(name, data, type) {
+  async function download(name, data, type) {
+    const blob = new Blob([data], { type });
+    // iOS Home Screen apps handle "Save to Files" through the share sheet
+    // more reliably than a synthetic <a download> click.
+    if (navigator.share && navigator.canShare && typeof File !== "undefined") {
+      const file = new File([blob], name, { type });
+      try {
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: name });
+          return true;
+        }
+      } catch (e) {
+        if (e.name === "AbortError") return false; // User cancelled, not a saved backup.
+        // Unsupported file sharing: fall back to the regular browser download.
+      }
+    }
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([data], { type }));
-    a.download = name; document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+    const url = URL.createObjectURL(blob);
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    // Safari can finish its file transfer well after the click is dispatched.
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    return true;
   }
-  function exportNote(kind = "md") {
-    if (!cur) return;
-    if (kind === "txt") download(safeName(titleOf(cur)) + ".txt", cur.text.replace(/\n/g, "\r\n"), "text/plain;charset=utf-8");
-    else download(safeName(titleOf(cur)) + ".md", cur.text, "text/markdown;charset=utf-8");
-    toast(`Note exported as .${kind}`);
+  async function exportNote(kind = "md") {
+    if (!cur) return false;
+    persist(true);
+    const ok = kind === "txt"
+      ? await download(safeName(titleOf(cur)) + ".txt", cur.text.replace(/\n/g, "\r\n"), "text/plain;charset=utf-8")
+      : await download(safeName(titleOf(cur)) + ".md", cur.text, "text/markdown;charset=utf-8");
+    if (ok) toast(`Note exported as .${kind}`);
+    return ok;
   }
-  function backupAll() {
-    download("lamplight-backup.json", JSON.stringify({ app: "lamplight", version: 1, notes }, null, 2), "application/json");
+  async function backupAll() {
+    persist(true);
+    const ok = await download("digital-ink-backup.json", JSON.stringify({ app: "digital-ink", version: 1, notes }, null, 2), "application/json");
+    if (!ok) return false;
     settings.lastBackup = Date.now(); persist();
     toast(`Backed up ${notes.length} note${notes.length === 1 ? "" : "s"}`);
     if (body.classList.contains("saving")) fillSave();
+    return true;
   }
 
   /* ---------------- save & backup panel ---------------- */
@@ -1458,17 +1509,22 @@
     $("spStatus").textContent = body.classList.contains("unsaved") ? "Saving…" : "All changes saved in this browser";
   }
   function openSave() {
+    if (compact()) document.activeElement?.blur();
     closeDrawer(); closePanel(); closeFind(true); body.classList.remove("mech");
     persist(true); fillSave();
     body.classList.add("saving");
-    setTimeout(() => document.querySelector('#savePanel [data-act="md"]').focus(), 40);
+    if (!compact()) setTimeout(() => document.querySelector('#savePanel [data-act="md"]').focus(), 40);
   }
-  function closeSave() { body.classList.remove("saving"); input.focus({ preventScroll: true }); }
-  function saveAction(act, btn) {
-    if (act === "md" || act === "txt") exportNote(act);
-    else if (act === "backup") backupAll();
+  function closeSave() {
+    body.classList.remove("saving");
+    if (!compact()) input.focus({ preventScroll: true });
+  }
+  async function saveAction(act, btn) {
+    let ok = false;
+    if (act === "md" || act === "txt") ok = await exportNote(act);
+    else if (act === "backup") ok = await backupAll();
     else if (act === "import") { $("file").click(); return; }
-    if (btn && !reduced) {                               // brief "done" tick on the button
+    if (ok && btn && !reduced) {                               // brief "done" tick on the button
       const old = btn.innerHTML; btn.classList.add("done"); btn.textContent = "✓ Saved";
       setTimeout(() => { btn.classList.remove("done"); btn.innerHTML = old; }, 1100);
     }
@@ -1499,7 +1555,7 @@
         lastNote = newNote(t); added++;
       }
     }
-    persist(); renderList();
+    persist(true); renderList();
     if (lastNote && files.length === 1) openNote(lastNote, { keepDrawer: body.classList.contains("drawer") });
     toast(`Imported ${added} note${added === 1 ? "" : "s"}${updated ? `, updated ${updated}` : ""}`);
   }
@@ -1831,7 +1887,11 @@
   }
 
   /* ---------------- buttons & shortcuts ---------------- */
-  const newAndOpen = () => { openNote(newNote()); toast("New note"); };
+  const newAndOpen = () => {
+    openNote(newNote(), { feed: !compact() });
+    if (compact()) input.focus({ preventScroll: true });
+    toast("New note");
+  };
   $("btnNotes").onclick = toggleDrawer;
   $("btnNew").onclick = newAndOpen;
   $("btnDir").onclick = cycleDir;
@@ -1890,7 +1950,9 @@
     else if (e.altKey && e.key === "ArrowDown") { e.preventDefault(); stepNote(1); }
   });
   window.addEventListener("resize", () => { sizeDust(); sizeLight(); instant(); render(true); drawLight(); });
-  window.addEventListener("focus", () => { if (!["drawer", "panel", "finding", "saving", "mech"].some(c => body.classList.contains(c))) input.focus({ preventScroll: true }); });
+  window.addEventListener("focus", () => {
+    if (!compact() && !["drawer", "panel", "finding", "saving", "mech"].some(c => body.classList.contains(c))) input.focus({ preventScroll: true });
+  });
   window.addEventListener("storage", e => {
     if (e.key !== NOTES_KEY || !e.newValue) return;
     try {
@@ -1907,7 +1969,7 @@
   const first = ensureNote();
   if (notes.some(n => n.text.trim())) body.classList.add("started");
   openNote(first);
-  input.focus({ preventScroll: true });
+  if (!compact()) input.focus({ preventScroll: true });
   // fonts arriving late re-measure the page, without cutting the opening paper-feed short
   if (document.fonts) document.fonts.ready.then(() => { if (!body.classList.contains("feeding")) instant(); render(true); });
   // the lamp appears where it belongs (no slide from the corner) and then switches itself on
@@ -1918,7 +1980,7 @@
 })();
 </script>
 <script>
-/* ---------------- Typing Machine as a web application ---------------- */
+/* ---------------- Digital Ink as a web application ---------------- */
 (() => {
   "use strict";
   const APP = "http://127.0.0.1:8765/", NOTES = "lamplight.notes.v1", SETS = "lamplight.settings.v1";
@@ -1950,7 +2012,7 @@
   }).catch(() => {});
 
   // 3) Offline support
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(() => {});
 
   // 4) Install button (only when the browser offers installation)
   let deferred = null;
