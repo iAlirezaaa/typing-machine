@@ -130,6 +130,24 @@ test("reports incomplete cache, then repairs missing offline assets when online"
   assert.equal((await worker.request(ROOT + "fonts/fonts.css", "cors")).status, 200);
 });
 
+test("versioned mobile CSS and updater JS bypass old caches but remain offline-readable", async () => {
+  const worker = createWorker();
+  await worker.install();
+  await worker.activate();
+  const css = ROOT + "mobile.css?v=1.2.2";
+  const js = ROOT + "offline-pwa.js?v=1.2.2";
+  // Even if an older unversioned asset was cached, the new URL is distinct.
+  const cache = await worker.caches.open("typing-machine-v7");
+  const old = await cache.match(ROOT + "mobile.css");
+  assert.ok(old);
+  assert.equal((await worker.request(css, "cors")).status, 200);
+  assert.equal((await worker.request(js, "cors")).status, 200);
+  worker.setOnline(false);
+  assert.equal((await worker.request(css, "cors")).status, 200);
+  assert.equal((await worker.request(js, "cors")).status, 200);
+  assert.equal((await worker.check()).ready, true);
+});
+
 test("does not overwrite the working offline app with an HTTP error", async () => {
   const worker = createWorker();
   await worker.install();
