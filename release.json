@@ -1,8 +1,8 @@
 {
   "name": "Digital Ink",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "status": "final",
   "released_at": "2026-11-16",
-  "notes": "Mobile archive and save improvements, local backups, and in-app update checks.",
+  "notes": "Windows offline installer, touch paper scrolling, tap-to-write, and mobile help improvements.",
   "requires_online_to_update": true
 }
