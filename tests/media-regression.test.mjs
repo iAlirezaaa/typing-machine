@@ -61,7 +61,7 @@ test("Recorded sounds are used locally with a synthetic fallback and can be mute
   assert.match(html, /ac\.decodeAudioData/);
   assert.match(html, /settings\.sound/);
   assert.match(html, /lastPhysicalKeyAt/);
-  assert.match(html, /src="offline-pwa\.js\?v=1\.3\.0"/);
+  assert.ok(html.includes('src="offline-pwa.js?v=1.3.1"'));
   assert.match(sw, /typing-machine-v9/);
   for (const name of RECORDINGS.keys()) {
     assert.ok(sw.includes('./' + name), "Missing offline sound: " + name);
