@@ -2,6 +2,8 @@
 
 A quiet, vintage-inspired typewriter for Persian and English notes. Warm paper, a moving carriage, a soft pool of light, and mechanical key sounds — in your browser.
 
+**Website:** [ialirezaaa.github.io/typing-machine](https://ialirezaaa.github.io/typing-machine/) *(available after GitHub Pages is enabled)*
+
 [راهنمای فارسی](README.fa.md) · [MIT license](LICENSE)
 
 ![Typing Machine with an English sample note](docs/screenshots/english.jpg)
