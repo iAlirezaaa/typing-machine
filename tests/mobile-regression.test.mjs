@@ -55,15 +55,15 @@ test("Mobile typing line follows the visible iOS viewport", () => {
   assert.match(html, /classList\.add\("mobile-editing"\)/);
   assert.match(html, /const left = el\.offsetLeft \+ el\.offsetWidth \/ 2 - shelf\.clientWidth \/ 2/);
   assert.match(html, /mobile-archive-hint/);
-  assert.ok(html.includes('href="mobile.css?v=1.2.2"'));
-  assert.ok(html.includes('src="offline-pwa.js?v=1.2.2"'));
+  assert.ok(html.includes('href="mobile.css?v=1.3.0"'));
+  assert.ok(html.includes('src="offline-pwa.js?v=1.3.0"'));
   assert.match(html, /Tap the paper to return to the last line/);
 });
 
 test("New worker repairs CSS/JS staleness on future releases", () => {
   const sw = read("sw.js");
-  assert.match(sw, /typing-machine-v7/);
-  assert.ok(sw.includes('"./mobile.css?v=1.2.2"'));
-  assert.ok(sw.includes('"./offline-pwa.js?v=1.2.2"'));
+  assert.match(sw, /typing-machine-v8/);
+  assert.ok(sw.includes('"./mobile.css?v=1.3.0"'));
+  assert.ok(sw.includes('"./offline-pwa.js?v=1.3.0"'));
   assert.ok(sw.includes('fetch(request, { cache: "no-store" })'));
 });
