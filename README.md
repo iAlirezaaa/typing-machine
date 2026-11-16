@@ -16,6 +16,16 @@ A quiet, vintage-inspired typewriter for Persian and English notes. Warm paper, 
 - Bundled fonts and offline support after the first successful service-worker installation.
 - Installable as a standalone web app in supported browsers. No account or build step required.
 
+## Public website · GitHub Pages
+
+The web app runs directly from this repository, without a build step or a backend.
+
+**Public URL (once GitHub Pages is enabled):** https://ialirezaaa.github.io/typing-machine/
+
+To enable it once, open [Repository Settings → Pages](https://github.com/iAlirezaaa/typing-machine/settings/pages) and select **Deploy from a branch** → **main** → **/(root)** → **Save**. GitHub Pages then publishes the existing `index.html` and deploys updates whenever `main` changes. The `.nojekyll` file keeps the site as plain static assets.
+
+The website and the local launcher have **separate browser storage**. To move writing from localhost or a file-based version, export a JSON backup in the old version and import it on the website. The hosted version does not use `serve.py` or transfer notes to a server.
+
 ## Run locally
 
 Download or clone this repository, then open `index.html` in a modern browser. For installation and offline caching, use Python 3:
