@@ -37,6 +37,7 @@ assert.ok(html.includes('name="app-version" content="' + release.version + '"'),
 const worker = fs.readFileSync(path.join(root, "sw.js"), "utf8");
 for (const match of worker.matchAll(/"(\.\/[^"]+)"/g)) {
   const rel = match[1].slice(2);
+  if (!rel) continue; // "./" is the home route, served by index.html.
   assert.ok(sourceFiles.includes(rel), "Missing PWA asset " + rel);
 }
 const buildInfo = JSON.stringify({
