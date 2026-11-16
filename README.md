@@ -28,6 +28,19 @@ GitHub Pages is enabled and the first deployment succeeded. The site publishes t
 
 The website and the local launcher have **separate browser storage**. To move writing from localhost or a file-based version, export a JSON backup in the old version and import it on the website. The hosted version does not use `serve.py` or transfer notes to a server.
 
+## Install on your phone and write offline
+
+The public website can be installed on iPhone, iPad and supported Android phones. The entire app shell (HTML, fonts, icons, manifest and status script) is downloaded for offline use.
+
+1. **While connected to the internet**, open [Typing Machine](https://ialirezaaa.github.io/typing-machine/).
+2. **iPhone/iPad:** In **Safari**, tap **Share → Add to Home Screen → Add**. **Android:** In Chrome, choose **Install app** or **Add to Home screen**.
+3. Launch Typing Machine from its **home-screen icon** while online, and wait for the small **offline ready** indicator at the bottom-left.
+4. Turn on **Airplane Mode**, close and reopen the installed app, and continue typing. The indicator changes to **working offline**.
+
+If the indicator says **offline not ready**, reconnect to the internet and use **Help → Check / repair**. The cache is verified on launch and can repair missing files. The offline copy may be evicted by the device under storage pressure; it cannot be guaranteed indefinitely.
+
+Notes are saved in the device's browser storage, **not uploaded** to GitHub or a server. Home-screen apps and Safari may have separate storage; notes do not automatically transfer or sync. Use **Save & backup → JSON** regularly, especially before clearing website data or reinstalling the app.
+
 ## Run locally
 
 Download or clone this repository, then open `index.html` in a modern browser. For installation and offline caching, use Python 3:
