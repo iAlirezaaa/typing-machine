@@ -926,14 +926,95 @@
   const normTag = s => s.toLowerCase().replace(/[يى]/g, "ی").replace(/ك/g, "ک");
   const tagsOf = s => [...new Set([...s.matchAll(TAG_RE)].map(m => normTag(m[2])))];
 
+
+  /* ---------------- note subjects: editable before or after writing ---------------- */
+  const normalizeTopic = value => typeof value === "string"
+    ? value.normalize("NFC").replace(/\s+/g, " ").trim().slice(0, 64) : "";
+  const topicOf = n => normalizeTopic(n?.topic);
+  const topicKey = value => norm(normalizeTopic(value));
+  let topicTarget = null;
+  let activeTopicFilter = "all";
+  const starterTopics = ["ایده", "پروژه", "کار", "شخصی", "مطالعه"];
+  function topicNames(includeSuggestions = false) {
+    const values = (includeSuggestions ? starterTopics : []).concat(notes.map(topicOf)).filter(Boolean);
+    const seen = new Set();
+    return values.filter(value => {
+      const key = topicKey(value);
+      if (!key || seen.has(key)) return false;
+      seen.add(key); return true;
+    }).sort((a, b) => a.localeCompare(b, "fa"));
+  }
+  function renderTopicChoices() {
+    const host = $("topicChoices");
+    host.replaceChildren();
+    for (const topic of topicNames(true)) {
+      const b = document.createElement("button");
+      b.type = "button"; b.textContent = topic; b.dataset.topic = topic;
+      host.appendChild(b);
+    }
+  }
+  function openTopic(n = cur) {
+    if (!n) return;
+    if (compact()) document.activeElement?.blur();
+    closePanel(); closeFind(true); body.classList.remove("saving", "mech");
+    topicTarget = n;
+    $("topicTargetTitle").textContent = titleOf(n);
+    $("topicInput").value = topicOf(n);
+    renderTopicChoices();
+    $("topicPanel").setAttribute("aria-hidden", "false");
+    body.classList.add("topicing");
+    setTimeout(() => {
+      if (body.classList.contains("topicing")) $("topicInput").focus({ preventScroll: true });
+    }, 40);
+  }
+  function closeTopic() {
+    body.classList.remove("topicing");
+    $("topicPanel").setAttribute("aria-hidden", "true");
+    $("topicInput").blur();
+    topicTarget = null;
+  }
+  function setNoteTopic(n, value) {
+    if (!n || !notes.includes(n)) return;
+    const desired = normalizeTopic(value);
+    const existing = topicNames().find(t => topicKey(t) === topicKey(desired));
+    const next = existing || desired;
+    const old = topicOf(n);
+    if (old !== next) {
+      n.topic = next;
+      n.updated = Date.now();
+      persist(true);
+      updateHud();
+      renderList(n.id);
+    }
+    closeTopic();
+    toast(next ? "Topic: " + next : "Topic cleared");
+  }
+  function saveTopicFromPanel() { if (topicTarget) setNoteTopic(topicTarget, $("topicInput").value); }
+
+  $("topicClose").onclick = closeTopic;
+  $("topicSave").onclick = saveTopicFromPanel;
+  $("topicClear").onclick = () => { if (topicTarget) setNoteTopic(topicTarget, ""); };
+  $("topicInput").addEventListener("keydown", e => {
+    if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); saveTopicFromPanel(); }
+    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeTopic(); }
+  });
+  $("topicChoices").addEventListener("click", e => {
+    const b = e.target.closest("button[data-topic]");
+    if (b && topicTarget) setNoteTopic(topicTarget, b.dataset.topic);
+  });
+  $("topicFilter").addEventListener("change", e => {
+    activeTopicFilter = e.target.value;
+    renderList();
+  });
+
   function newNote(text = "") {
-    const n = { id: uid(), text, created: Date.now(), updated: Date.now(), pinned: false, caret: text.length };
+    const n = { id: uid(), text, topic: "", created: Date.now(), updated: Date.now(), pinned: false, caret: text.length };
     notes.unshift(n); return n;
   }
   function openNote(n, opts = {}) {
     if (cur && cur !== n) {
       cur.caret = input.selectionEnd;
-      if (!cur.text.trim()) notes = notes.filter(x => x !== cur);
+      if (!cur.text.trim() && !topicOf(cur)) notes = notes.filter(x => x !== cur);
     }
     const prev = cur, changed = prev !== n;
     cur = n; settings.current = n.id;
@@ -1179,6 +1260,8 @@
     $("words").textContent = w.toLocaleString() + (w === 1 ? " word" : " words");
     $("stats").title = `${v.length.toLocaleString()} characters · ~${mins} min read`;
     $("title").textContent = cur ? titleOf(cur) + (cur.pinned ? "  ·  pinned" : "") : "";
+    $("btnTopic").textContent = topicOf(cur) ? "⌗ " + topicOf(cur) : "+ topic";
+    $("btnTopic").title = topicOf(cur) ? "Change topic: " + topicOf(cur) : "Choose topic / انتخاب موضوع";
     document.title = cur && cur.text.trim() ? titleOf(cur) + " — Digital Ink" : "Digital Ink";
     $("btnDir").textContent = { auto: "auto ⇄", rtl: "RTL ←", ltr: "LTR →" }[settings.dir];
     $("btnDir").classList.toggle("on", settings.dir !== "auto");
@@ -1348,7 +1431,7 @@
   /* Mobile: the paper is a touch-driven reading surface. A swipe reads
      previous lines; a short tap resumes typing at the end of the note.
      Desktop mouse text selection and checkbox toggling remain available. */
-  const WRITING_UI = ".ui, #drawer, #panel, #savePanel, #mechPanel, #toast, #scrim, #offlineStatus, #findbar, #drop, #machine, #lever, #bail, #platen, #lampPos, #knobTip, button, a, input, textarea, select";
+  const WRITING_UI = ".ui, #drawer, #panel, #topicPanel, #savePanel, #mechPanel, #toast, #scrim, #offlineStatus, #findbar, #drop, #machine, #lever, #bail, #platen, #lampPos, #knobTip, button, a, input, textarea, select";
   const writingSurface = target => target instanceof Element && !target.closest(WRITING_UI);
   let mobileTouch = null;
   let suppressSyntheticMouseUntil = 0;
@@ -1397,7 +1480,7 @@
   let dragging = false, anchor = 0;
   document.addEventListener("mousedown", e => {
     if (compact() && performance.now() < suppressSyntheticMouseUntil) return;
-    if (e.button !== 0 || e.target.closest(".ui, #drawer, #panel, #savePanel, #mechPanel, #toast, #scrim, #offlineStatus")) return;
+    if (e.button !== 0 || e.target.closest(".ui, #drawer, #panel, #topicPanel, #savePanel, #mechPanel, #toast, #scrim, #offlineStatus")) return;
     e.preventDefault();
     input.focus({ preventScroll: true });
     goalX = null;
@@ -1461,14 +1544,27 @@
     const tags = Object.keys(counts).sort();
     if (activeTag && !counts[activeTag]) activeTag = null;
     $("tags").innerHTML = tags.map(t => `<button class="chip${t === activeTag ? " on" : ""}" dir="auto" data-tag="${esc(t)}">${esc(t)} <span style="opacity:.55">${counts[t]}</span></button>`).join("");
+    const topicFilter = $("topicFilter");
+    topicFilter.replaceChildren();
+    topicFilter.add(new Option("All topics / همه موضوع‌ها", "all"));
+    topicFilter.add(new Option("Uncategorized / بدون موضوع", "none"));
+    for (const topic of topicNames()) topicFilter.add(new Option(topic, "topic:" + topicKey(topic)));
+    if (![...topicFilter.options].some(opt => opt.value === activeTopicFilter)) activeTopicFilter = "all";
+    topicFilter.value = activeTopicFilter;
     const focusId = keepId || (visible[centerIdx] && visible[centerIdx].id) || (cur && cur.id);
-    visible = sorted().filter(n => (!q || norm(n.text).includes(q)) && (!activeTag || tagsOf(n.text).includes(activeTag)));
-    $("dCount").textContent = (q || activeTag) ? `${visible.length} of ${notes.length} pages` : `${notes.length} page${notes.length === 1 ? "" : "s"} · saved in this browser`;
+    visible = sorted().filter(n =>
+      (!q || norm(n.text + " " + topicOf(n)).includes(q)) &&
+      (!activeTag || tagsOf(n.text).includes(activeTag)) &&
+      (activeTopicFilter === "all" ||
+        (activeTopicFilter === "none" ? !topicOf(n) : "topic:" + topicKey(topicOf(n)) === activeTopicFilter))
+    );
+    $("dCount").textContent = (q || activeTag || activeTopicFilter !== "all") ? `${visible.length} of ${notes.length} pages` : `${notes.length} page${notes.length === 1 ? "" : "s"} · saved in this browser`;
     $("shelf").innerHTML = visible.map(n => `<div class="leaf${n === cur ? " cur" : ""}" data-id="${n.id}" dir="${firstStrong(titleOf(n)) === "rtl" ? "rtl" : "ltr"}">
         ${n.pinned ? CLIP : ""}
         <div class="stampd">${wordCount(n.text).toLocaleString()} w · ${rel(n.updated)}</div>
+        <div class="topic-label" dir="auto">${topicOf(n) ? "⌗ " + esc(topicOf(n)) : ""}</div>
         <div class="pg">${miniPage(n) || "&nbsp;"}</div>
-        <span class="acts"><button data-act="pin">${n.pinned ? "unpin" : "pin"}</button><button data-act="del">delete</button></span>
+        <span class="acts"><button data-act="topic" aria-label="Change topic">topic</button><button data-act="pin">${n.pinned ? "unpin" : "pin"}</button><button data-act="del">delete</button></span>
       </div>`).join("") || `<div class="shelf-empty">${notes.length ? "No pages match." : "The folder is empty."}</div>`;
     const idx = Math.max(0, visible.findIndex(n => n.id === focusId));
     centerIdx = Math.min(idx, Math.max(0, visible.length - 1));
@@ -1585,6 +1681,7 @@
     const leaf = e.target.closest(".leaf"); if (!leaf) return;
     const n = byId(leaf.dataset.id); if (!n) return;
     const act = e.target.closest("[data-act]")?.dataset.act;
+    if (act === "topic") { openTopic(n); return; }
     if (act === "pin") { togglePin(n); return; }
     if (act === "del") { deleteNote(n); return; }
     const i = [...shelf.querySelectorAll(".leaf")].indexOf(leaf);
@@ -1610,7 +1707,7 @@
       else { const q = $("search").value.trim(); openNote(newNote(q ? "# " + q + "\n\n" : "")); }
     }
   });
-  $("scrim").addEventListener("mousedown", () => { closePanel(); if (body.classList.contains("saving")) closeSave(); closeMech(); });
+  $("scrim").addEventListener("mousedown", () => { if (body.classList.contains("topicing")) { closeTopic(); return; } closePanel(); if (body.classList.contains("saving")) closeSave(); closeMech(); });
 
   /* ---------------- find in note ---------------- */
   const fi = $("findInput");
@@ -1740,8 +1837,8 @@
           for (const n of (data.notes || [])) {
             if (typeof n.text !== "string") continue;
             const ex = n.id && byId(n.id);
-            if (ex) { if ((n.updated || 0) > ex.updated) { Object.assign(ex, n); updated++; } }
-            else { notes.push({ id: n.id || uid(), text: n.text, created: n.created || Date.now(), updated: n.updated || Date.now(), pinned: !!n.pinned, caret: n.text.length }); added++; }
+            if (ex) { if ((n.updated || 0) > ex.updated) { const previousTopic = topicOf(ex); Object.assign(ex, n); ex.topic = Object.hasOwn(n, "topic") ? normalizeTopic(n.topic) : previousTopic; updated++; } }
+            else { notes.push({ id: n.id || uid(), text: n.text, topic: normalizeTopic(n.topic), created: n.created || Date.now(), updated: n.updated || Date.now(), pinned: !!n.pinned, caret: n.text.length }); added++; }
           }
         } catch (e) { toast(`Couldn't read ${f.name}`); }
       } else {
@@ -2135,6 +2232,7 @@
     toast("New note");
   };
   $("btnNotes").onclick = toggleDrawer;
+  $("btnTopic").onclick = () => openTopic(cur);
   $("btnNew").onclick = newAndOpen;
   $("btnDir").onclick = cycleDir;
   $("btnFace").onclick = cycleFace;
@@ -2166,6 +2264,8 @@
       if (e.key === "Escape") { e.preventDefault(); closeSave(); return; }
       if (map[code]) { e.preventDefault(); saveAction(map[code], document.querySelector(`#savePanel [data-act="${map[code]}"]`)); return; }
     }
+    if (e.key === "Escape" && body.classList.contains("topicing")) { e.preventDefault(); closeTopic(); return; }
+    if (body.classList.contains("topicing")) return;
     if (ctrl && code === "Comma") { e.preventDefault(); body.classList.contains("mech") ? closeMech() : openMech(); return; }
     if (e.key === "Escape" && body.classList.contains("mech")) { e.preventDefault(); closeMech(); return; }
     if (e.key === "Escape") {
