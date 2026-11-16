@@ -29,9 +29,15 @@ The public, installable **Digital Ink web app** runs at **https://ialirezaaa.git
 
 ## Windows installer (offline desktop app)
 
-Download **Digital Ink Setup for Windows x64** from [GitHub Releases](https://github.com/iAlirezaaa/typing-machine/releases/latest). Run the `DigitalInk-Setup-1.2.2-x64.exe` installer; it creates a Start Menu shortcut and offers to **Launch Digital Ink now** when setup finishes. Desktop shortcut and **Start with Windows** are optional (auto-start at login is **off by default**).
+Download **Digital Ink Setup for Windows x64** from [GitHub Releases](https://github.com/iAlirezaaa/typing-machine/releases/latest). Run the `DigitalInk-Setup-1.3.0-x64.exe` installer; it creates a Start Menu shortcut and offers to **Launch Digital Ink now** when setup finishes. Desktop shortcut and **Start with Windows** are optional (auto-start at login is **off by default**).
 
 The installer bundles the local Python runtime (you do **not** install Python). It opens its own app-style Microsoft Edge/Chrome window and serves all files strictly from `127.0.0.1`. Writing is kept locally in a dedicated browser profile under `%LOCALAPPDATA%\DigitalInk\BrowserProfile`; uninstalling does not intentionally remove notes. An existing Edge or Chrome installation is required. Installer is not code-signed; Windows SmartScreen may warn. Update through GitHub Releases.
+
+## Original icon and recorded typewriter sounds
+
+The new app icon features a vintage mechanical typewriter and an aged sheet of paper; it is included as SVG and as PWA/Windows icon sizes. The writing experience now plays **authentic CC0 recordings** of three different key presses, a mechanical carriage return and paper movement. Samples are loaded on the first user interaction and kept in the offline app; if an audio file cannot be decoded, the existing procedural sound engine is used instead. Turn sound on/off with **sound**, and set the level with the slider.
+
+Sound licensing and source credits: [Third-party notices](THIRD_PARTY_NOTICES.md).
 
 ## Features
 
