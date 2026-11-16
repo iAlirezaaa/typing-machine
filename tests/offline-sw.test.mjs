@@ -118,7 +118,7 @@ test("pre-caches every file and opens the installed app in airplane mode", async
 test("reports incomplete cache, then repairs missing offline assets when online", async () => {
   const worker = createWorker();
   await worker.install();
-  const cache = await worker.caches.open("typing-machine-v6");
+  const cache = await worker.caches.open("typing-machine-v7");
   await cache.delete(ROOT + "fonts/fonts.css");
   worker.setOnline(false);
   const missing = await worker.check();
@@ -148,7 +148,7 @@ test("only purges this app's old caches", async () => {
   await worker.caches.open("typing-machine-v2");
   await worker.install();
   await worker.activate();
-  assert.deepEqual(await worker.caches.keys(), ["other-app-v1", "typing-machine-v6"]);
+  assert.deepEqual(await worker.caches.keys(), ["other-app-v1", "typing-machine-v7"]);
 });
 
 test("does not intercept backend migration, external scope, or non-GET requests", async () => {
@@ -164,12 +164,12 @@ test("mobile UI and every pre-cache asset exist in the repository", () => {
   assert.match(html, /name="apple-mobile-web-app-capable" content="yes"/);
   assert.match(html, /id="offlineStatus"/);
   assert.match(html, /id="offlineHelpStatus"/);
-  assert.match(html, /src="offline-pwa.js"/);
+  assert.match(html, /src="offline-pwa.js\\?v=1\\.2\\.2"/);
   assert.match(html, /visibilitychange/);
   const assets = [...workerCode.matchAll(/"(\.\/[^"]+)"/g)].map(match => match[1]);
   assert.ok(assets.includes("./offline-pwa.js"));
   for (const asset of assets) {
-    assert.ok(existsSync(new URL("../" + asset.slice(2), import.meta.url)), "Missing pre-cache asset: " + asset);
+    assert.ok(existsSync(new URL("../" + asset.slice(2).split("?")[0], import.meta.url)), "Missing pre-cache asset: " + asset);
   }
   const manifest = JSON.parse(readFileSync(new URL("../manifest.webmanifest", import.meta.url), "utf8"));
   assert.equal(manifest.display, "standalone");
