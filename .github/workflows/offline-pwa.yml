@@ -44,7 +44,7 @@ jobs:
         with:
           node-version: '22'
       - name: Offline and release regression tests
-        run: node --test tests/offline-sw.test.mjs tests/mobile-regression.test.mjs tests/media-regression.test.mjs
+        run: node --test tests/offline-sw.test.mjs tests/mobile-regression.test.mjs tests/media-regression.test.mjs tests/persian-ink.test.mjs tests/topics.test.mjs
       - name: Verify the complete built release matches the source
         run: node scripts/build.mjs --check
       - name: Offer an installable build ZIP from GitHub Actions
