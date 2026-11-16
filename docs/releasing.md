@@ -51,6 +51,12 @@ The committed `dist/` directory contains the original app icon plus bundled CC0 
 
 GitHub Actions verifies the checked-in distribution and publishes an artifact ZIP. The source and built app require no npm runtime dependencies, backend, account, cloud notes or paid hosting.
 
+## Persian typewriter letterpress (v1.3.1)
+
+The paper uses a locally bundled **Parastoo** variable face (SIL OFL 1.1), converted to WOFF2 by `scripts/vendor-persian-font.py` with its upstream font/license Git object IDs verified before conversion. The CSS `fonts/typewriter-persian.css` restricts this face to Arabic-script Unicode and styles *connected words* with stable per-word baseline and density variation. It does **not** split or independently rotate Arabic letters. A very subtle per-line SVG alpha filter creates faded ribbon grain without disconnecting thin strokes.
+
+The preview cards use the same rendering. The note's stored Unicode text, caret mapping, exports and selection are not modified. Keep the WOFF2 in `sw.js`'s offline precache and in the committed `dist/fonts/` distribution. Validate with `node --test tests/persian-ink.test.mjs` and mobile Chromium rendering tests.
+
 ## Original icon and downloaded real typewriter audio
 
 `icons/icon-art.webp.b64` is the canonical original app illustration. `scripts/vendor-media.py` validates its SHA-256 and renders icon PNG/SVG variants. The same script downloads and checks five small WAV recordings (3 key strikes, carriage return, paper movement) from their CC0-licensed upstream source, pinned by Git blob hashes. These files are distributed in the repository and in `dist/sounds/`, not loaded from third-party servers at runtime. The audio engine prefers the decoded recordings and retains its original synthetic sounds as a fallback, including a synthesized margin bell. Update `sw.js` precache and Windows `serve.py` when adding any new sound type.
