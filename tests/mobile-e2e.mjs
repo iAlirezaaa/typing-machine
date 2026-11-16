@@ -152,6 +152,21 @@ test("mobile archive, saving, downloads, and offline reload", { timeout: 125000 
     }));
     assert.equal(caret.start, caret.end, "Tap on the paper should jump to the final line");
     assert.equal(caret.focused, true, "Tap should focus the keyboard input");
+    // Recorded key samples are part of the local PWA, not network streams.
+    const recordedAudio = page.waitForResponse(r =>
+      r.url().endsWith("/sounds/key-1.wav") && r.status() === 200, { timeout: 15000 });
+    await page.keyboard.type("x", { delay: 60 });
+    await recordedAudio;
+    const clipDuration = await page.evaluate(async () => {
+      const response = await fetch("sounds/key-1.wav");
+      const bytes = await response.arrayBuffer();
+      const audio = new (window.AudioContext || window.webkitAudioContext)();
+      const buffer = await audio.decodeAudioData(bytes);
+      await audio.close();
+      return buffer.duration;
+    });
+    assert.ok(clipDuration > 0.02, "Real typewriter recording must decode correctly in the browser");
+
     const cursor = await page.locator("#caret").evaluate(el =>
       getComputedStyle(el, "::before").display);
     assert.equal(cursor, "block", "A dark typing caret must be visible on mobile");
