@@ -50,7 +50,7 @@ jobs:
           im = Image.open("icons/icon-512.png").convert("RGBA")
           im.save("windows/icon.ico", format="ICO", sizes=[(16,16), (32,32), (48,48), (64,64), (128,128), (256,256)])
           '@ | python -
-          python -m PyInstaller --noconfirm --clean --onedir --windowed --name DigitalInk --icon windows/icon.ico --paths . windows/desktop.py
+          python -m PyInstaller --noconfirm --clean --onedir --windowed --name DigitalInk --icon windows/icon.ico --paths . --distpath build --workpath .pyinstaller-work --specpath .pyinstaller-work windows/desktop.py
       - name: Executable smoke test (no browser or Python required on end-user computer)
         shell: pwsh
         run: |
