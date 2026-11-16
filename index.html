@@ -6,7 +6,7 @@
 <title>Digital Ink</title>
 <meta name="description" content="A quiet typewriter for your notes.">
 <meta name="application-name" content="Digital Ink">
-<meta name="app-version" content="1.3.0">
+<meta name="app-version" content="1.3.1">
 <meta name="theme-color" content="#fbf8f0">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -17,6 +17,7 @@
 <link rel="icon" href="icons/icon-192.png?v=1.3.0" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="icons/icon-192.png?v=1.3.0">
 <link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="fonts/typewriter-persian.css?v=1.3.1">
 <style>
   :root {
     --paper: #fbf8f0;               /* aged ivory */
@@ -70,8 +71,8 @@
     color: var(--ink); pointer-events: auto;
     text-shadow: 0 0 .7px rgba(20, 18, 16, .45);
   }
-  /* ragged typewriter ink for Latin lines only: it would eat the thin joins of Persian/Arabic letters */
-  .ln:not([dir="rtl"]) { filter: url(#ink); }
+  /* Latin typebar texture. Persian receives a separate gentle filter, preserving connected strokes. */
+  .ln:not([dir="rtl"]):not(.fa-line) { filter: url(#ink); }
   .ln { white-space: pre-wrap; overflow-wrap: anywhere; min-height: 1.75em; transition: opacity .35s ease; text-align: start; }
   .ln.h1 { font-size: 1.45em; font-weight: 700; line-height: 1.5; margin: .2em 0 .1em; }
   .ln.h2 { font-size: 1.2em; font-weight: 700; line-height: 1.6; }
@@ -501,7 +502,7 @@
   body.typing #offlineStatus { opacity: .35; }
   @media (max-width: 640px) { #offlineStatus { bottom: calc(9px + env(safe-area-inset-bottom, 0px)); left: 10px; } }
 </style>
-<link rel="stylesheet" href="mobile.css?v=1.3.0">
+<link rel="stylesheet" href="mobile.css?v=1.3.1">
 </head>
 <body class="boot">
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -511,6 +512,15 @@
       <feTurbulence type="fractalNoise" baseFrequency=".28" numOctaves="2" seed="9" result="dens"/>
       <feColorMatrix in="dens" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1.1 0 0 0 .38" result="mask"/>
       <feComposite in="rough" in2="mask" operator="in"/>
+    </filter>
+    <!-- Subtle dry ribbon ink: gentle per-pixel thinning, no displacement
+         that could sever the fine joins between Persian letters. -->
+    <filter id="persian-ink" x="-2%" y="-12%" width="104%" height="124%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency=".74" numOctaves="2" seed="11" result="grain"/>
+      <feComponentTransfer in="grain" result="ribbon">
+        <feFuncA type="table" tableValues=".82 .98"/>
+      </feComponentTransfer>
+      <feComposite in="SourceGraphic" in2="ribbon" operator="in"/>
     </filter>
   </svg>
 
@@ -703,6 +713,11 @@
 
   /* ---------------- text helpers (RTL aware) ---------------- */
   const RTL_CH = /[֐-ࣿיִ-﷿ﹰ-﻿]/;
+  // Keep connected Arabic-script words intact: never wrap each letter.
+  // Persian ZWNJ and combining marks belong to their surrounding word.
+  const PERSIAN_SCRIPT = /\\p{Script=Arabic}/u;
+  const PERSIAN_UNIT = /[\\p{Script=Arabic}\\p{M}\\u200c\\u200d]/u;
+  const PERSIAN_WORDS = /[\\p{Script=Arabic}\\p{M}\\u200c\\u200d]+/gu;
   const LTR_CH = /[A-Za-zÀ-ɏͰ-ϿЀ-ӿ]/;
   // default writing direction: the RTL/LTR setting, or (auto) the system language
   const defaultDir = () => settings.dir !== "auto" ? settings.dir : (/^(fa|ar|he|ur|ps|ku)/i.test(navigator.language || "") ? "rtl" : "ltr");
@@ -930,6 +945,40 @@
     return { cls, segs };
   }
 
+
+  /* Mechanical Persian imprint. One stable set of variations per whole word:
+     shifting each Arabic character independently breaks joins and ligatures.
+     The hidden textarea remains unchanged; this only paints paper. */
+  function persianInkStyle(pos, source) {
+    const first = source[pos] || " ", next = source[pos + 1] || " ";
+    const seed = pos * .071;
+    const y = ((hash(first, next, "P", 11 + seed) - .5) * 1.8).toFixed(2);
+    const ink = (.79 + hash(first, next, "I", 19 + seed) * .20).toFixed(3);
+    const weight = Math.round(412 + hash(first, next, "W", 27 + seed) * 95);
+    return `--fa-y:${y}px;--fa-ink:${ink};--fa-weight:${weight}`;
+  }
+
+  function persianPrintMarkup(piece, from, cls, fullText) {
+    let out = "", done = 0;
+    const plain = (a, b) => {
+      if (b <= a) return "";
+      return `<span class="${cls}" data-o="${from + a}" data-l="${b - a}">${esc(piece.slice(a, b))}</span>`;
+    };
+    for (const m of piece.matchAll(PERSIAN_WORDS)) {
+      const idx = m.index, value = m[0], absolute = from + idx;
+      out += plain(done, idx);
+      if (PERSIAN_SCRIPT.test(value)) {
+        // Both sides of a caret/selection split reuse the original word seed,
+        // so its wear/baseline do not jump while editing.
+        let wordStart = absolute;
+        while (wordStart > 0 && PERSIAN_UNIT.test(fullText[wordStart - 1])) wordStart--;
+        out += `<span class="${cls} fa-typed" style="${persianInkStyle(wordStart, fullText)}" data-o="${absolute}" data-l="${value.length}">${esc(value)}</span>`;
+      } else out += plain(idx, idx + value.length);
+      done = idx + value.length;
+    }
+    return out + plain(done, piece.length);
+  }
+
   let lastSig = "";
   function render(force) {
     const v = input.value;
@@ -947,7 +996,10 @@
     for (const line of v.split("\n")) {
       const start = o, end = o + line.length;
       const isCur = caretPos >= start && caretPos <= end;
-      const { cls, segs } = lineSegments(line);
+      let { cls, segs } = lineSegments(line);
+      const hasPersian = PERSIAN_SCRIPT.test(line);
+      if (hasPersian) cls += " fa-line";
+      if (hasPersian && jitter) cls += " fa-grain";
       // direction from the first strong letter after any list/checkbox marker; blank lines follow the line above
       let dir = settings.dir;
       if (dir === "auto") { dir = firstStrong(line.replace(MARKER, "")) || prevDir; prevDir = dir; }
@@ -977,7 +1029,8 @@
               const heavy = h2 > .93 ? " hv" : "";
               out += `<span class="${k} g${heavy}" style="--j:${((h1 - .5) * 1.2).toFixed(2)}px;--k:${(.74 + h2 * .26).toFixed(2)}" data-o="${q}" data-l="1">${esc(ch)}</span>`;
             }
-          } else out += `<span class="${k}" data-o="${a}" data-l="${b - a}">${esc(piece)}</span>`;
+          } else if (PERSIAN_SCRIPT.test(piece) && jitter) out += persianPrintMarkup(piece, a, k, v);
+          else out += `<span class="${k}" data-o="${a}" data-l="${b - a}">${esc(piece)}</span>`;
         }
         if (c === "tag" || c === "box") {
           if (!caretDone && b0 === caretPos && c === "tag") { out += CARET; caretDone = true; }
@@ -1334,7 +1387,12 @@
     return n.text.slice(0, 1400).split("\n").slice(0, 46).map(l => {
       const d = firstStrong(l.replace(MARKER, "")) || prev; prev = d;
       const h = /^#{1,3}\s/.test(l);
-      const body = esc(l.replace(/^#{1,3}\s/, "")).replace(/(^|\s)(#[\p{L}\p{M}\p{N}_\u200c-]+)/gu, '$1<span class="tg">$2</span>');
+      const typed = esc(l.replace(/^#{1,3}\\s/, "")).replace(/(^|\\s)(#[\\p{L}\\p{M}\\p{N}_\\u200c-]+)/gu, '$1<span class="tg">$2</span>');
+      // Archived notes show the same worn ink; never create extra saved pages.
+      const body = typed.replace(PERSIAN_WORDS, (word, offset) =>
+        PERSIAN_SCRIPT.test(word)
+          ? `<span class="fa-typed" style="${persianInkStyle(offset, typed)}">${word}</span>`
+          : word);
       return `<div dir="${d}"${h ? ' class="h"' : ""}>${body || "&nbsp;"}</div>`;
     }).join("");
   }
@@ -2171,6 +2229,6 @@
   }
 })();
 </script>
-<script src="offline-pwa.js?v=1.3.0" defer></script>
+<script src="offline-pwa.js?v=1.3.1" defer></script>
 </body>
 </html>
