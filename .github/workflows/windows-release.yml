@@ -60,8 +60,9 @@ jobs:
       - name: Executable smoke test (no browser or Python required on end-user computer)
         shell: pwsh
         run: |
-          & ".\build\DigitalInk\DigitalInk.exe" --self-test
-          if ($LASTEXITCODE -ne 0) { throw "Desktop self-test failed with exit code $LASTEXITCODE" }
+          $binary = (Resolve-Path ".\\build\\DigitalInk\\DigitalInk.exe").Path
+          $check = Start-Process -FilePath $binary -ArgumentList "--self-test" -Wait -PassThru
+          if ($check.ExitCode -ne 0) { throw "Desktop self-test failed with exit code $($check.ExitCode)" }
       - name: Compile Inno Setup installer
         shell: pwsh
         run: |
