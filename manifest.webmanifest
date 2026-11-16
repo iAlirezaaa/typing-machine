@@ -1,7 +1,7 @@
 {
-  "name": "Typing Machine — a quiet typewriter for your notes",
-  "short_name": "Typing Machine",
-  "description": "A minimalist, nostalgic typewriter for personal notes, with Persian and English support.",
+  "name": "Digital Ink — a quiet typewriter for your notes",
+  "short_name": "Digital Ink",
+  "description": "An offline-ready writing app with Persian and English notes, a vintage typewriter interface, and local-only storage.",
   "id": "./",
   "start_url": "./",
   "scope": "./",
