@@ -6,6 +6,7 @@
 <title>Digital Ink</title>
 <meta name="description" content="A quiet typewriter for your notes.">
 <meta name="application-name" content="Digital Ink">
+<meta name="app-version" content="1.1.0">
 <meta name="theme-color" content="#fbf8f0">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2011,7 +2012,7 @@
   }).catch(() => {});
 
   // 3) Offline support
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(() => {});
 
   // 4) Install button (only when the browser offers installation)
   let deferred = null;
