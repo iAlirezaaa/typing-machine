@@ -6,7 +6,7 @@
 <title>Digital Ink</title>
 <meta name="description" content="A quiet typewriter for your notes.">
 <meta name="application-name" content="Digital Ink">
-<meta name="app-version" content="1.1.0">
+<meta name="app-version" content="1.2.0">
 <meta name="theme-color" content="#fbf8f0">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -591,7 +591,8 @@
     <div><b>iPhone / iPad:</b> Open this website in Safari, tap Share, then <b>Add to Home Screen</b>. Launch the home-screen icon with an internet connection once; wait until the indicator says <b>offline ready</b>. You can then reopen it in Airplane Mode.</div>
     <div><b>Android:</b> Open the site in Chrome, choose <b>Install app</b> or <b>Add to Home screen</b> from the browser menu, and open the installed app online once until it says <b>offline ready</b>.</div>
     <div>Notes are saved locally on this device, including when offline. Browser storage can be cleared by the system; make regular <b>Save &amp; backup → JSON</b> backups. Notes do not sync between devices or between browser and home-screen installations.</div>
-    <h3>Shortcuts</h3>
+    <section class="desktop-shortcuts" aria-label="Keyboard shortcuts">
+    <h3>Keyboard shortcuts (desktop)</h3>
     <table>
       <tr><td><kbd>Ctrl+K</kbd></td><td>Notes &amp; search</td></tr>
       <tr><td><kbd>Alt+N</kbd></td><td>New note</td></tr>
@@ -611,6 +612,12 @@
       <tr><td><kbd>Ctrl+,</kbd> / ⚙</td><td>Machine settings (platen, carriage, lever)</td></tr>
       <tr><td><kbd>Esc</kbd></td><td>Close panels</td></tr>
     </table>
+    </section>
+    <section class="mobile-touch-guide" aria-label="Touch controls">
+      <h3>Touch controls</h3>
+      <div><b>Swipe up or down on the paper</b> to read earlier or later lines. <b>Tap the paper</b> to jump to the last line and open the keyboard for writing.</div>
+      <div>Use <b>notes</b> to browse your pages and <b>save</b> to export or back up your writing.</div>
+    </section>
     <h3>Writing</h3>
     <table>
       <tr><td><code># Title</code> <code>## Sub</code></td><td>Headings (first line names the note)</td></tr>
@@ -1197,16 +1204,69 @@
     sound.key(false); jolt(); render(true);
   }
 
+  /* Mobile: the paper is a touch-driven reading surface. A swipe reads
+     previous lines; a short tap resumes typing at the end of the note.
+     Desktop mouse text selection and checkbox toggling remain available. */
+  const WRITING_UI = ".ui, #drawer, #panel, #savePanel, #mechPanel, #toast, #scrim, #offlineStatus, #findbar, #drop, #machine, #lever, #bail, #platen, #lampPos, #knobTip, button, a, input, textarea, select";
+  const writingSurface = target => target instanceof Element && !target.closest(WRITING_UI);
+  let mobileTouch = null;
+  let suppressSyntheticMouseUntil = 0;
+  function focusEndOfNote() {
+    const end = input.value.length;
+    freeze = false;
+    viewOffset = 0; goalX = null;
+    input.focus({ preventScroll: true });
+    input.setSelectionRange(end, end);
+    render(true);
+  }
+  document.addEventListener("touchstart", e => {
+    if (!compact() || !writingSurface(e.target) || e.touches.length !== 1) return;
+    const t = e.touches[0];
+    mobileTouch = { id: t.identifier, startY: t.clientY, lastY: t.clientY, moved: false, tappedBox: e.target.closest(".box") };
+  }, { passive: true });
+  document.addEventListener("touchmove", e => {
+    if (!mobileTouch || e.touches.length !== 1) return;
+    const t = e.touches[0];
+    if (t.identifier !== mobileTouch.id) return;
+    const dy = t.clientY - mobileTouch.lastY;
+    mobileTouch.lastY = t.clientY;
+    if (Math.abs(t.clientY - mobileTouch.startY) > 9) mobileTouch.moved = true;
+    if (mobileTouch.moved) {
+      e.preventDefault();               // paper moves rather than the viewport
+      viewOffset += dy;
+      place();
+    }
+  }, { passive: false });
+  document.addEventListener("touchend", e => {
+    if (!mobileTouch) return;
+    const ending = Array.from(e.changedTouches).some(t => t.identifier === mobileTouch.id);
+    if (!ending) return;
+    const { moved, tappedBox } = mobileTouch;
+    mobileTouch = null;
+    suppressSyntheticMouseUntil = performance.now() + 550;
+    if (!moved) {
+      if (tappedBox) toggleBox(+tappedBox.dataset.o);
+      else focusEndOfNote();
+      // Block the synthetic mouse click; it would move the caret back again.
+      if (e.cancelable) e.preventDefault();
+    }
+  }, { passive: false });
+  document.addEventListener("touchcancel", () => { mobileTouch = null; }, { passive: true });
+
   let dragging = false, anchor = 0;
   document.addEventListener("mousedown", e => {
+    if (compact() && performance.now() < suppressSyntheticMouseUntil) return;
     if (e.button !== 0 || e.target.closest(".ui, #drawer, #panel, #savePanel, #mechPanel, #toast, #scrim, #offlineStatus")) return;
     e.preventDefault();
     input.focus({ preventScroll: true });
     goalX = null;
     const box = e.target.closest(".box");
     if (box) { toggleBox(+box.dataset.o); return; }
+    // Clicking outside rendered text resumes at the final line; inside
+    // actual text, retain precise desktop caret placement and selection.
+    if (!textEl.contains(e.target)) { focusEndOfNote(); return; }
     const off = offsetFromPoint(e.clientX, e.clientY);
-    if (off == null) return;
+    if (off == null) { focusEndOfNote(); return; }
     if (e.detail === 2) { const [a, b] = wordAt(off); setSel(a, b); return; }
     if (e.detail >= 3) {
       const v = input.value; const a = v.lastIndexOf("\n", off - 1) + 1; let b = v.indexOf("\n", off); if (b < 0) b = v.length;

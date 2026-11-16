@@ -1,0 +1,117 @@
+name: Digital Ink Windows installer and GitHub Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'windows/**'
+      - 'serve.py'
+      - 'dist/**'
+      - 'index.html'
+      - 'mobile.css'
+      - 'release.json'
+      - '.github/workflows/windows-release.yml'
+  pull_request:
+    paths:
+      - 'windows/**'
+      - 'serve.py'
+      - 'dist/**'
+      - 'index.html'
+      - 'mobile.css'
+      - 'release.json'
+      - '.github/workflows/windows-release.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  installer:
+    name: Build and smoke-test Windows Setup.exe
+    runs-on: windows-2022
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          architecture: x64
+      - name: Verify checked-in static distribution
+        run: node scripts/build.mjs --check
+      - name: Prepare Python-free Windows executable
+        shell: pwsh
+        run: |
+          python -m pip install --disable-pip-version-check pyinstaller==6.16.0 Pillow==11.3.0
+          @'
+          from PIL import Image
+          im = Image.open("icons/icon-512.png").convert("RGBA")
+          im.save("windows/icon.ico", format="ICO", sizes=[(16,16), (32,32), (48,48), (64,64), (128,128), (256,256)])
+          '@ | python -
+          $icon = (Resolve-Path 'windows/icon.ico').Path
+          python -m PyInstaller --noconfirm --clean --onedir --windowed --name DigitalInk --icon $icon --paths . --distpath build --workpath .pyinstaller-work --specpath .pyinstaller-work windows/desktop.py
+      - name: Stage offline web files in installed layout for executable self-test
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path "build/web" -Force | Out-Null
+          Copy-Item -Path "dist/*" -Destination "build/web" -Recurse -Force
+      - name: Executable smoke test (no browser or Python required on end-user computer)
+        shell: pwsh
+        run: |
+          $binary = (Resolve-Path ".\\build\\DigitalInk\\DigitalInk.exe").Path
+          $check = Start-Process -FilePath $binary -ArgumentList "--self-test" -Wait -PassThru
+          if ($check.ExitCode -ne 0) { throw "Desktop self-test failed with exit code $($check.ExitCode)" }
+      - name: Compile Inno Setup installer
+        shell: pwsh
+        run: |
+          $version = (Get-Content release.json -Raw | ConvertFrom-Json).version
+          $compiler = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (!(Test-Path $compiler)) {
+            choco install innosetup -y --no-progress
+            $compiler = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          }
+          if (!(Test-Path $compiler)) { throw "Inno Setup compiler is missing" }
+          & $compiler "/DAppVersion=$version" "windows\installer.iss"
+          if ($LASTEXITCODE -ne 0) { throw "Installer compilation failed" }
+          $installer = "artifacts\DigitalInk-Setup-$version-x64.exe"
+          if (!(Test-Path $installer)) { throw "Installer file was not created" }
+          Get-Item $installer | Select-Object Name, Length
+      - name: Upload downloadable installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: DigitalInk-Windows-Installer
+          path: artifacts/DigitalInk-Setup-*-x64.exe
+          if-no-files-found: error
+          retention-days: 90
+
+  publish:
+    name: Publish versioned GitHub Release
+    needs: installer
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: DigitalInk-Windows-Installer
+          path: release-artifacts
+      - name: Publish installer for this version (never rewrite an existing version tag)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version="$(node -p 'JSON.parse(require("fs").readFileSync("release.json", "utf8")).version')"
+          tag="v${version}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release $tag exists; keeping its immutable version tag. Bump release.json for the next release."
+            exit 0
+          fi
+          gh release create "$tag" release-artifacts/*.exe \
+            --target "$GITHUB_SHA" \
+            --title "Digital Ink $tag — Windows installer & web app" \
+            --notes-file windows/release-notes.md

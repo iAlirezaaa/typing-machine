@@ -122,3 +122,14 @@ body.finding #findbar { pointer-events: auto; }
   #drawer .pocket { padding-inline: 8px; }
   #drawer .leaf .pg { padding-right: 100px; }
 }
+
+
+/* A touch-first help panel should not advertise keyboard-only shortcuts.
+   Keep the complete shortcut reference on desktop and keyboard devices. */
+.mobile-touch-guide { display: none; }
+@media (max-width: 680px), (hover: none) and (pointer: coarse) {
+  #panel .desktop-shortcuts, #savePanel kbd, #hint { display: none !important; }
+  #panel .mobile-touch-guide { display: block; }
+  #text { touch-action: none; }
+  #paper { overscroll-behavior: contain; }
+}
