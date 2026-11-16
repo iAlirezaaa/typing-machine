@@ -217,7 +217,10 @@ body.finding #findbar { pointer-events: auto; }
       0 0 0 1px var(--manila-edge);
     z-index: 4;
   }
-  body.drawer #drawer .pocket { transform: translateY(0); }
+  body.drawer #drawer .pocket {
+    transform: translateY(0);
+    transition: transform .32s cubic-bezier(.2,.82,.2,1);
+  }
   #drawer .pocket::before { width: 72px; height: 11px; }
   #drawer .file-label { display: none; }
   #drawer .pocket-row {
