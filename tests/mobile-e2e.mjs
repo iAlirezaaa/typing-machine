@@ -39,6 +39,19 @@ test("mobile archive, saving, downloads, and offline reload", { timeout: 125000 
     await page.reload({ waitUntil: "domcontentloaded" });
     await page.waitForSelector("#btnNotes");
 
+    console.log("MOBILE UI LAYOUT", JSON.stringify(await page.evaluate(() => {
+      const selectors = ["#hudL", "#hudR", "#btnNotes", "#btnDir"];
+      const rects = {};
+      for (const sel of selectors) {
+        const e = document.querySelector(sel), r = e.getBoundingClientRect();
+        rects[sel] = { x:r.x, y:r.y, w:r.width, h:r.height, z:getComputedStyle(e).zIndex };
+      }
+      const b = document.querySelector("#btnNotes").getBoundingClientRect();
+      const cover = document.elementFromPoint(b.x + b.width / 2, b.y + b.height / 2);
+      return { innerWidth, media:matchMedia("(max-width: 680px)").matches,
+        mobileCss: [...document.styleSheets].some(x => x.href?.endsWith("/mobile.css")),
+        covering: cover?.id || cover?.tagName, rects };
+    })));
     // Accessible, one-tap archive cards instead of miniature overlapping sheets.
     await page.locator("#btnNotes").click();
     await page.waitForSelector("body.drawer");
