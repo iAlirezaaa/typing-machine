@@ -6,6 +6,12 @@ on:
     paths:
       - 'scripts/vendor-persian-font.py'
       - '.github/workflows/vendor-persian-font.yml'
+      - 'index.html'
+      - 'mobile.css'
+      - 'sw.js'
+      - 'release.json'
+      - 'tests/**'
+      - 'fonts/typewriter-persian.css'
   workflow_dispatch:
 
 permissions:
