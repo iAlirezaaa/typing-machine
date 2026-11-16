@@ -41,6 +41,18 @@ The new app icon features a vintage mechanical typewriter and an aged sheet of p
 
 Sound licensing and source credits: [Third-party notices](THIRD_PARTY_NOTICES.md).
 
+## Assign a topic to any note — even after writing (v1.3.1)
+
+Use **+ topic** above the writing paper to assign a subject at any point, or open **notes** and tap **topic** on an existing paper to change its subject later. Choose a suggested subject (e.g. پروژه, کار, ایده) or type a custom one. Subjects are optional: choose **Clear** to leave a note uncategorized.
+
+In the notes folder, use the **موضوع / Topic** selector to view all notes, only uncategorized notes, or a specific subject. Search also matches subject names. A small subject stamp appears on the saved paper. Tags (`#word`) remain separate and continue working as before. Subjects are stored as metadata in the local JSON backup—not inserted into your text—and are restored on import.
+
+## Persian mechanical letterpress (v1.3.1)
+
+Persian notes now use **Parastoo**, a locally bundled, OFL-licensed printed-text font rather than the previous clean modern sans-serif. Each **connected Persian word** has subtle, reproducible height variation and uneven ribbon pressure, with light ink fading and texture. Arabic-script letters and ZWNJ remain connected; splitting and jiggling individual Persian letters would damage their shaping.
+
+The effect appears in the typewriter paper **and** in saved paper previews, without altering the text saved in your notes. Latin typewriter text, selection, search, keyboard caret and export formats remain unchanged. All font files work offline.
+
 ## Features
 
 - Persian and English writing with automatic text direction and joined Persian letters.

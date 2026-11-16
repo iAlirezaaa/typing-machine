@@ -118,7 +118,7 @@ test("pre-caches every file and opens the installed app in airplane mode", async
 test("reports incomplete cache, then repairs missing offline assets when online", async () => {
   const worker = createWorker();
   await worker.install();
-  const cache = await worker.caches.open("typing-machine-v8");
+  const cache = await worker.caches.open("typing-machine-v9");
   await cache.delete(ROOT + "fonts/fonts.css");
   worker.setOnline(false);
   const missing = await worker.check();
@@ -134,10 +134,10 @@ test("versioned mobile CSS and updater JS bypass old caches but remain offline-r
   const worker = createWorker();
   await worker.install();
   await worker.activate();
-  const css = ROOT + "mobile.css?v=1.3.0";
-  const js = ROOT + "offline-pwa.js?v=1.3.0";
+  const css = ROOT + "mobile.css?v=1.3.1";
+  const js = ROOT + "offline-pwa.js?v=1.3.1";
   // Even if an older unversioned asset was cached, the new URL is distinct.
-  const cache = await worker.caches.open("typing-machine-v8");
+  const cache = await worker.caches.open("typing-machine-v9");
   const old = await cache.match(ROOT + "mobile.css");
   assert.ok(old);
   assert.equal((await worker.request(css, "cors")).status, 200);
@@ -166,7 +166,7 @@ test("only purges this app's old caches", async () => {
   await worker.caches.open("typing-machine-v2");
   await worker.install();
   await worker.activate();
-  assert.deepEqual(await worker.caches.keys(), ["other-app-v1", "typing-machine-v8"]);
+  assert.deepEqual(await worker.caches.keys(), ["other-app-v1", "typing-machine-v9"]);
 });
 
 test("does not intercept backend migration, external scope, or non-GET requests", async () => {
@@ -182,7 +182,7 @@ test("mobile UI and every pre-cache asset exist in the repository", () => {
   assert.match(html, /name="apple-mobile-web-app-capable" content="yes"/);
   assert.match(html, /id="offlineStatus"/);
   assert.match(html, /id="offlineHelpStatus"/);
-  assert.ok(html.includes('src="offline-pwa.js?v=1.3.0"'));
+  assert.ok(html.includes('src="offline-pwa.js?v=1.3.1"'));
   assert.match(html, /visibilitychange/);
   const assets = [...workerCode.matchAll(/"(\.\/[^"]+)"/g)].map(match => match[1]);
   assert.ok(assets.includes("./offline-pwa.js"));

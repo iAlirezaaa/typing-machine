@@ -4,17 +4,18 @@
  * Notes are never stored here: they remain in the browser's localStorage.
  */
 const CACHE_PREFIX = "typing-machine-";
-const CACHE = "typing-machine-v8";
+const CACHE = "typing-machine-v9";
 const ASSETS = [
   "./", "./index.html", "./offline-pwa.js", "./mobile.css",
-  "./offline-pwa.js?v=1.3.0", "./mobile.css?v=1.3.0",
+  "./offline-pwa.js?v=1.3.1", "./mobile.css?v=1.3.1",
   "./manifest.webmanifest", "./manifest.webmanifest?v=1.3.0",
   "./icons/icon.svg", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png",
   "./icons/icon.svg?v=1.3.0", "./icons/icon-192.png?v=1.3.0",
   "./icons/icon-512.png?v=1.3.0", "./icons/icon-maskable-512.png?v=1.3.0",
   "./sounds/key-1.wav", "./sounds/key-2.wav", "./sounds/key-3.wav",
   "./sounds/carriage-return.wav", "./sounds/paper-select.wav",
-  "./fonts/fonts.css",
+  "./fonts/fonts.css", "./fonts/typewriter-persian.css",
+  "./fonts/typewriter-persian.css?v=1.3.1", "./fonts/Parastoo-Persian-Typewriter.woff2",
   "./fonts/CourierPrime-italic-400-latin-ext.woff2", "./fonts/CourierPrime-italic-400-latin.woff2",
   "./fonts/CourierPrime-italic-700-latin-ext.woff2", "./fonts/CourierPrime-italic-700-latin.woff2",
   "./fonts/CourierPrime-normal-400-latin-ext.woff2", "./fonts/CourierPrime-normal-400-latin.woff2",

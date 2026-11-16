@@ -6,7 +6,7 @@
 <title>Digital Ink</title>
 <meta name="description" content="A quiet typewriter for your notes.">
 <meta name="application-name" content="Digital Ink">
-<meta name="app-version" content="1.3.0">
+<meta name="app-version" content="1.3.1">
 <meta name="theme-color" content="#fbf8f0">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -17,6 +17,7 @@
 <link rel="icon" href="icons/icon-192.png?v=1.3.0" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="icons/icon-192.png?v=1.3.0">
 <link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="fonts/typewriter-persian.css?v=1.3.1">
 <style>
   :root {
     --paper: #fbf8f0;               /* aged ivory */
@@ -70,8 +71,8 @@
     color: var(--ink); pointer-events: auto;
     text-shadow: 0 0 .7px rgba(20, 18, 16, .45);
   }
-  /* ragged typewriter ink for Latin lines only: it would eat the thin joins of Persian/Arabic letters */
-  .ln:not([dir="rtl"]) { filter: url(#ink); }
+  /* Latin typebar texture. Persian receives a separate gentle filter, preserving connected strokes. */
+  .ln:not([dir="rtl"]):not(.fa-line) { filter: url(#ink); }
   .ln { white-space: pre-wrap; overflow-wrap: anywhere; min-height: 1.75em; transition: opacity .35s ease; text-align: start; }
   .ln.h1 { font-size: 1.45em; font-weight: 700; line-height: 1.5; margin: .2em 0 .1em; }
   .ln.h2 { font-size: 1.2em; font-weight: 700; line-height: 1.6; }
@@ -403,10 +404,45 @@
   .pocket-hint { flex: 1; font: 12px var(--type); color: var(--manila-ink); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .pocket .sp-btn { padding: 8px 13px; }
   @media (max-width: 640px) { .pocket-hint { display: none; } }
+
+  /* The same manila-paper visual language for topics on mobile and desktop. */
+  #btnTopic { max-width: 142px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ribbon); }
+  #topicPanel { position: fixed; z-index: 35; left: 50%; top: 50%;
+    transform: translate(-50%, -47%) scale(.97); width: min(440px, calc(100vw - 28px));
+    opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .2s, transform .2s, visibility 0s linear .2s; }
+  body.topicing #topicPanel { opacity: 1; visibility: visible; pointer-events: auto;
+    transform: translate(-50%, -50%) scale(1); transition: opacity .2s, transform .2s, visibility 0s; }
+  #topicPanel .topic-sheet { background: #e9d8b3; border: 1px solid #c9b186; border-radius: 7px;
+    box-shadow: 0 20px 75px rgba(43,30,15,.4), inset 0 2px 0 #fff8e9;
+    padding: 19px; color: #332b22; font: 13px/1.55 var(--sans); }
+  .topic-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; font: 700 14px/1.4 var(--type); }
+  #topicClose { border: none; background: rgba(76,54,29,.09); color: #554b3c; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; font-size: 14px; }
+  .topic-target { white-space: nowrap; text-overflow: ellipsis; overflow: hidden; margin: 10px 0 14px; font-size: 12px; opacity: .72; }
+  #topicPanel label { display: block; margin-bottom: 8px; color: #68553d; }
+  #topicInput { width: 100%; min-height: 44px; border: 1px solid #c8b593; background: #fcf9f1;
+    color: #312a24; border-radius: 4px; padding: 9px 11px; font: 16px/1.4 "Vazirmatn", var(--sans); outline-offset: 2px; }
+  #topicChoices { display: flex; flex-wrap: wrap; gap: 7px; max-height: 108px; margin: 12px 0; overflow-y: auto; }
+  #topicChoices button { background: #f8f1e2; border: 1px solid #cdbb96; border-radius: 4px; padding: 6px 10px;
+    min-height: 34px; font: 12px "Vazirmatn", var(--sans); color: #56412f; cursor: pointer; }
+  #topicChoices button:hover, #topicChoices button:focus-visible { background: #efe1c7; border-color: #8c4a3a; }
+  .topic-actions { display: flex; gap: 8px; justify-content: space-between; }
+  .topic-actions button { min-height: 44px; border: 1px solid #c7b18b; cursor: pointer; border-radius: 4px;
+    padding: 9px 13px; background: #f8f0e0; color: #4e402e; font: 12px/1.3 "Vazirmatn", var(--sans); }
+  #topicSave { background: #8c4a3a; color: #fff; border-color: #8c4a3a; font-weight: 700; }
+  .topic-filter-row { display: flex; align-items: center; gap: 8px; max-width: 100%; }
+  .topic-filter-row label { color: #715d3b; white-space: nowrap; font: 11px/1.4 "Vazirmatn", var(--sans); }
+  #topicFilter { min-width: 110px; max-width: min(250px, 100%); min-height: 35px; border: 1px solid #cdb88e;
+    border-radius: 4px; background: #fbf6e9; color: #3b3024; padding: 5px 9px; font: 12px "Vazirmatn", var(--sans); }
+  #drawer .leaf .topic-label { position: absolute; z-index: 2; top: 11%; inset-inline-start: 8%;
+    max-width: 76%; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;
+    color: #8c4a3a; font: 10px/1.5 "Vazirmatn", var(--sans); opacity: .92; }
+  #drawer .leaf .topic-label:empty { display: none; }
+  #drawer .leaf .acts button[data-act="topic"] { color: #8c4a3a; }
   /* a page flying out of the folder onto the typewriter */
   .leaf.fly { position: fixed; z-index: 60; margin: 0; transform-origin: 0 0; pointer-events: none; }
   #scrim { position: fixed; inset: 0; z-index: 15; display: none; cursor: default; }
-  body.panel #scrim, body.saving #scrim, body.mech #scrim { display: block; }
+  body.panel #scrim, body.saving #scrim, body.mech #scrim, body.topicing #scrim { display: block; }
+  body.topicing #scrim { background: rgba(18,15,12,.45); z-index: 28; }
   body.drawer #scrim { background: rgba(10,10,12,.16); animation: fadeIn .25s ease both; }
   body.panel #scrim, body.saving #scrim { background: rgba(10,10,12,.3); animation: fadeIn .25s ease both; }
   @keyframes fadeIn { from { opacity: 0; } }
@@ -501,7 +537,7 @@
   body.typing #offlineStatus { opacity: .35; }
   @media (max-width: 640px) { #offlineStatus { bottom: calc(9px + env(safe-area-inset-bottom, 0px)); left: 10px; } }
 </style>
-<link rel="stylesheet" href="mobile.css?v=1.3.0">
+<link rel="stylesheet" href="mobile.css?v=1.3.1">
 </head>
 <body class="boot">
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -511,6 +547,15 @@
       <feTurbulence type="fractalNoise" baseFrequency=".28" numOctaves="2" seed="9" result="dens"/>
       <feColorMatrix in="dens" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1.1 0 0 0 .38" result="mask"/>
       <feComposite in="rough" in2="mask" operator="in"/>
+    </filter>
+    <!-- Subtle dry ribbon ink: gentle per-pixel thinning, no displacement
+         that could sever the fine joins between Persian letters. -->
+    <filter id="persian-ink" x="-2%" y="-12%" width="104%" height="124%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency=".74" numOctaves="2" seed="11" result="grain"/>
+      <feComponentTransfer in="grain" result="ribbon">
+        <feFuncA type="table" tableValues=".82 .98"/>
+      </feComponentTransfer>
+      <feComposite in="SourceGraphic" in2="ribbon" operator="in"/>
     </filter>
   </svg>
 
@@ -532,6 +577,7 @@
     <button id="btnNew" title="New note (Alt+N)">+ new</button>
     <button id="btnInstall" title="Install Digital Ink as an app on this computer" hidden>install</button>
     <button id="btnSave" title="Save &amp; backup (Ctrl+S)"><span class="savedot"></span>save</button>
+    <button id="btnTopic" type="button" title="Choose or change topic / انتخاب موضوع" aria-haspopup="dialog">+ topic</button>
     <button id="btnUpdate" title="A new app version is available" hidden>update</button>
     <span id="title" dir="auto"></span>
   </div>
@@ -567,6 +613,10 @@
         <div id="tags"></div>
         <button class="sp-x" id="dClose" title="Back to the page (Esc)">✕</button>
       </div>
+      <div class="topic-filter-row">
+        <label for="topicFilter">موضوع / Topic</label>
+        <select id="topicFilter" aria-label="Filter notes by topic / فیلتر موضوع"></select>
+      </div>
       <div class="pocket-row">
         <span class="dr-sub"><span class="savedot"></span><span id="dCount">0 notes</span></span>
         <span class="pocket-hint"><span class="desktop-archive-hint">scroll to leaf through your pages · click or Enter to take one out</span><span class="mobile-archive-hint">Swipe left or right to turn real paper sheets · tap the middle sheet to type</span></span>
@@ -576,6 +626,23 @@
       <div class="file-label">PERSONAL NOTES<small>typed by Digital Ink</small></div>
     </div>
   </aside>
+
+  <section id="topicPanel" role="dialog" aria-modal="true" aria-labelledby="topicPanelTitle" aria-hidden="true">
+    <div class="topic-sheet">
+      <div class="topic-heading">
+        <span id="topicPanelTitle">موضوع یادداشت / Note topic</span>
+        <button id="topicClose" type="button" aria-label="Close topic editor">✕</button>
+      </div>
+      <p id="topicTargetTitle" class="topic-target" dir="auto"></p>
+      <label for="topicInput">Choose an existing topic or enter a new one</label>
+      <input id="topicInput" dir="auto" type="text" maxlength="64" autocomplete="off" placeholder="e.g. پروژه، کار، ایده…" aria-label="Topic name">
+      <div id="topicChoices" aria-label="Suggested and existing topics"></div>
+      <div class="topic-actions">
+        <button id="topicClear" type="button">بدون موضوع / Clear</button>
+        <button id="topicSave" type="button">ذخیره موضوع / Save</button>
+      </div>
+    </div>
+  </section>
 
   <div id="panel" role="dialog" aria-label="Help">
     <div class="dr-tab"><span class="dr-label">HELP</span></div>
@@ -619,6 +686,8 @@
       <div><b>Writing:</b> Swipe up or down on the paper to read earlier lines. Tap the paper to return to the last line, show the dark typing cursor and open the keyboard. The typing line moves above the on-screen keyboard.</div><div><b>Saved pages:</b> Open <b>notes</b> to see overlapping paper sheets. Swipe left or right to turn the sheets; tap the centered sheet to bring it back to the typewriter.</div>
       <div>Use <b>notes</b> to browse your pages and <b>save</b> to export or back up your writing.</div>
     </section>
+    <h3>Topics / موضوع‌ها</h3>
+    <div>Choose a topic with the <b>+ topic</b> button while writing, or open <b>notes</b> and tap <b>topic</b> on any saved paper to assign or change it later. You can type a custom topic, choose an existing topic, or clear it. The folder's <b>Topic</b> selector filters pages independently of hashtags. Topics are stored in local JSON backups and never inserted into the note's actual text.</div>
     <h3>Writing</h3>
     <table>
       <tr><td><code># Title</code> <code>## Sub</code></td><td>Headings (first line names the note)</td></tr>
@@ -703,6 +772,11 @@
 
   /* ---------------- text helpers (RTL aware) ---------------- */
   const RTL_CH = /[֐-ࣿיִ-﷿ﹰ-﻿]/;
+  // Keep connected Arabic-script words intact: never wrap each letter.
+  // Persian ZWNJ and combining marks belong to their surrounding word.
+  const PERSIAN_SCRIPT = /\p{Script=Arabic}/u;
+  const PERSIAN_UNIT = /[\p{Script=Arabic}\p{M}\u200c\u200d]/u;
+  const PERSIAN_WORDS = /[\p{Script=Arabic}\p{M}\u200c\u200d]+/gu;
   const LTR_CH = /[A-Za-zÀ-ɏͰ-ϿЀ-ӿ]/;
   // default writing direction: the RTL/LTR setting, or (auto) the system language
   const defaultDir = () => settings.dir !== "auto" ? settings.dir : (/^(fa|ar|he|ur|ps|ku)/i.test(navigator.language || "") ? "rtl" : "ltr");
@@ -854,14 +928,95 @@
   const normTag = s => s.toLowerCase().replace(/[يى]/g, "ی").replace(/ك/g, "ک");
   const tagsOf = s => [...new Set([...s.matchAll(TAG_RE)].map(m => normTag(m[2])))];
 
+
+  /* ---------------- note subjects: editable before or after writing ---------------- */
+  const normalizeTopic = value => typeof value === "string"
+    ? value.normalize("NFC").replace(/\s+/g, " ").trim().slice(0, 64) : "";
+  const topicOf = n => normalizeTopic(n?.topic);
+  const topicKey = value => norm(normalizeTopic(value));
+  let topicTarget = null;
+  let activeTopicFilter = "all";
+  const starterTopics = ["ایده", "پروژه", "کار", "شخصی", "مطالعه"];
+  function topicNames(includeSuggestions = false) {
+    const values = (includeSuggestions ? starterTopics : []).concat(notes.map(topicOf)).filter(Boolean);
+    const seen = new Set();
+    return values.filter(value => {
+      const key = topicKey(value);
+      if (!key || seen.has(key)) return false;
+      seen.add(key); return true;
+    }).sort((a, b) => a.localeCompare(b, "fa"));
+  }
+  function renderTopicChoices() {
+    const host = $("topicChoices");
+    host.replaceChildren();
+    for (const topic of topicNames(true)) {
+      const b = document.createElement("button");
+      b.type = "button"; b.textContent = topic; b.dataset.topic = topic;
+      host.appendChild(b);
+    }
+  }
+  function openTopic(n = cur) {
+    if (!n) return;
+    if (compact()) document.activeElement?.blur();
+    closePanel(); closeFind(true); body.classList.remove("saving", "mech");
+    topicTarget = n;
+    $("topicTargetTitle").textContent = titleOf(n);
+    $("topicInput").value = topicOf(n);
+    renderTopicChoices();
+    $("topicPanel").setAttribute("aria-hidden", "false");
+    body.classList.add("topicing");
+    setTimeout(() => {
+      if (body.classList.contains("topicing")) $("topicInput").focus({ preventScroll: true });
+    }, 40);
+  }
+  function closeTopic() {
+    body.classList.remove("topicing");
+    $("topicPanel").setAttribute("aria-hidden", "true");
+    $("topicInput").blur();
+    topicTarget = null;
+  }
+  function setNoteTopic(n, value) {
+    if (!n || !notes.includes(n)) return;
+    const desired = normalizeTopic(value);
+    const existing = topicNames().find(t => topicKey(t) === topicKey(desired));
+    const next = existing || desired;
+    const old = topicOf(n);
+    if (old !== next) {
+      n.topic = next;
+      n.updated = Date.now();
+      persist(true);
+      updateHud();
+      renderList(n.id);
+    }
+    closeTopic();
+    toast(next ? "Topic: " + next : "Topic cleared");
+  }
+  function saveTopicFromPanel() { if (topicTarget) setNoteTopic(topicTarget, $("topicInput").value); }
+
+  $("topicClose").onclick = closeTopic;
+  $("topicSave").onclick = saveTopicFromPanel;
+  $("topicClear").onclick = () => { if (topicTarget) setNoteTopic(topicTarget, ""); };
+  $("topicInput").addEventListener("keydown", e => {
+    if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); saveTopicFromPanel(); }
+    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeTopic(); }
+  });
+  $("topicChoices").addEventListener("click", e => {
+    const b = e.target.closest("button[data-topic]");
+    if (b && topicTarget) setNoteTopic(topicTarget, b.dataset.topic);
+  });
+  $("topicFilter").addEventListener("change", e => {
+    activeTopicFilter = e.target.value;
+    renderList();
+  });
+
   function newNote(text = "") {
-    const n = { id: uid(), text, created: Date.now(), updated: Date.now(), pinned: false, caret: text.length };
+    const n = { id: uid(), text, topic: "", created: Date.now(), updated: Date.now(), pinned: false, caret: text.length };
     notes.unshift(n); return n;
   }
   function openNote(n, opts = {}) {
     if (cur && cur !== n) {
       cur.caret = input.selectionEnd;
-      if (!cur.text.trim()) notes = notes.filter(x => x !== cur);
+      if (!cur.text.trim() && !topicOf(cur)) notes = notes.filter(x => x !== cur);
     }
     const prev = cur, changed = prev !== n;
     cur = n; settings.current = n.id;
@@ -930,6 +1085,40 @@
     return { cls, segs };
   }
 
+
+  /* Mechanical Persian imprint. One stable set of variations per whole word:
+     shifting each Arabic character independently breaks joins and ligatures.
+     The hidden textarea remains unchanged; this only paints paper. */
+  function persianInkStyle(pos, source) {
+    const first = source[pos] || " ", next = source[pos + 1] || " ";
+    const seed = pos * .071;
+    const y = ((hash(first, next, "P", 11 + seed) - .5) * 1.8).toFixed(2);
+    const ink = (.79 + hash(first, next, "I", 19 + seed) * .20).toFixed(3);
+    const weight = Math.round(412 + hash(first, next, "W", 27 + seed) * 95);
+    return `--fa-y:${y}px;--fa-ink:${ink};--fa-weight:${weight}`;
+  }
+
+  function persianPrintMarkup(piece, from, cls, fullText) {
+    let out = "", done = 0;
+    const plain = (a, b) => {
+      if (b <= a) return "";
+      return `<span class="${cls}" data-o="${from + a}" data-l="${b - a}">${esc(piece.slice(a, b))}</span>`;
+    };
+    for (const m of piece.matchAll(PERSIAN_WORDS)) {
+      const idx = m.index, value = m[0], absolute = from + idx;
+      out += plain(done, idx);
+      if (PERSIAN_SCRIPT.test(value)) {
+        // Both sides of a caret/selection split reuse the original word seed,
+        // so its wear/baseline do not jump while editing.
+        let wordStart = absolute;
+        while (wordStart > 0 && PERSIAN_UNIT.test(fullText[wordStart - 1])) wordStart--;
+        out += `<span class="${cls} fa-typed" style="${persianInkStyle(wordStart, fullText)}" data-o="${absolute}" data-l="${value.length}">${esc(value)}</span>`;
+      } else out += plain(idx, idx + value.length);
+      done = idx + value.length;
+    }
+    return out + plain(done, piece.length);
+  }
+
   let lastSig = "";
   function render(force) {
     const v = input.value;
@@ -947,7 +1136,10 @@
     for (const line of v.split("\n")) {
       const start = o, end = o + line.length;
       const isCur = caretPos >= start && caretPos <= end;
-      const { cls, segs } = lineSegments(line);
+      let { cls, segs } = lineSegments(line);
+      const hasPersian = PERSIAN_SCRIPT.test(line);
+      if (hasPersian) cls += " fa-line";
+      if (hasPersian && jitter) cls += " fa-grain";
       // direction from the first strong letter after any list/checkbox marker; blank lines follow the line above
       let dir = settings.dir;
       if (dir === "auto") { dir = firstStrong(line.replace(MARKER, "")) || prevDir; prevDir = dir; }
@@ -977,7 +1169,8 @@
               const heavy = h2 > .93 ? " hv" : "";
               out += `<span class="${k} g${heavy}" style="--j:${((h1 - .5) * 1.2).toFixed(2)}px;--k:${(.74 + h2 * .26).toFixed(2)}" data-o="${q}" data-l="1">${esc(ch)}</span>`;
             }
-          } else out += `<span class="${k}" data-o="${a}" data-l="${b - a}">${esc(piece)}</span>`;
+          } else if (PERSIAN_SCRIPT.test(piece) && jitter) out += persianPrintMarkup(piece, a, k, v);
+          else out += `<span class="${k}" data-o="${a}" data-l="${b - a}">${esc(piece)}</span>`;
         }
         if (c === "tag" || c === "box") {
           if (!caretDone && b0 === caretPos && c === "tag") { out += CARET; caretDone = true; }
@@ -1069,6 +1262,8 @@
     $("words").textContent = w.toLocaleString() + (w === 1 ? " word" : " words");
     $("stats").title = `${v.length.toLocaleString()} characters · ~${mins} min read`;
     $("title").textContent = cur ? titleOf(cur) + (cur.pinned ? "  ·  pinned" : "") : "";
+    $("btnTopic").textContent = topicOf(cur) ? "⌗ " + topicOf(cur) : "+ topic";
+    $("btnTopic").title = topicOf(cur) ? "Change topic: " + topicOf(cur) : "Choose topic / انتخاب موضوع";
     document.title = cur && cur.text.trim() ? titleOf(cur) + " — Digital Ink" : "Digital Ink";
     $("btnDir").textContent = { auto: "auto ⇄", rtl: "RTL ←", ltr: "LTR →" }[settings.dir];
     $("btnDir").classList.toggle("on", settings.dir !== "auto");
@@ -1238,7 +1433,7 @@
   /* Mobile: the paper is a touch-driven reading surface. A swipe reads
      previous lines; a short tap resumes typing at the end of the note.
      Desktop mouse text selection and checkbox toggling remain available. */
-  const WRITING_UI = ".ui, #drawer, #panel, #savePanel, #mechPanel, #toast, #scrim, #offlineStatus, #findbar, #drop, #machine, #lever, #bail, #platen, #lampPos, #knobTip, button, a, input, textarea, select";
+  const WRITING_UI = ".ui, #drawer, #panel, #topicPanel, #savePanel, #mechPanel, #toast, #scrim, #offlineStatus, #findbar, #drop, #machine, #lever, #bail, #platen, #lampPos, #knobTip, button, a, input, textarea, select";
   const writingSurface = target => target instanceof Element && !target.closest(WRITING_UI);
   let mobileTouch = null;
   let suppressSyntheticMouseUntil = 0;
@@ -1287,7 +1482,7 @@
   let dragging = false, anchor = 0;
   document.addEventListener("mousedown", e => {
     if (compact() && performance.now() < suppressSyntheticMouseUntil) return;
-    if (e.button !== 0 || e.target.closest(".ui, #drawer, #panel, #savePanel, #mechPanel, #toast, #scrim, #offlineStatus")) return;
+    if (e.button !== 0 || e.target.closest(".ui, #drawer, #panel, #topicPanel, #savePanel, #mechPanel, #toast, #scrim, #offlineStatus")) return;
     e.preventDefault();
     input.focus({ preventScroll: true });
     goalX = null;
@@ -1334,7 +1529,12 @@
     return n.text.slice(0, 1400).split("\n").slice(0, 46).map(l => {
       const d = firstStrong(l.replace(MARKER, "")) || prev; prev = d;
       const h = /^#{1,3}\s/.test(l);
-      const body = esc(l.replace(/^#{1,3}\s/, "")).replace(/(^|\s)(#[\p{L}\p{M}\p{N}_\u200c-]+)/gu, '$1<span class="tg">$2</span>');
+      const typed = esc(l.replace(/^#{1,3}\s/, "")).replace(/(^|\s)(#[\p{L}\p{M}\p{N}_\u200c-]+)/gu, '$1<span class="tg">$2</span>');
+      // Archived notes show the same worn ink; never create extra saved pages.
+      const body = typed.replace(PERSIAN_WORDS, (word, offset) =>
+        PERSIAN_SCRIPT.test(word)
+          ? `<span class="fa-typed" style="${persianInkStyle(offset, typed)}">${word}</span>`
+          : word);
       return `<div dir="${d}"${h ? ' class="h"' : ""}>${body || "&nbsp;"}</div>`;
     }).join("");
   }
@@ -1346,14 +1546,27 @@
     const tags = Object.keys(counts).sort();
     if (activeTag && !counts[activeTag]) activeTag = null;
     $("tags").innerHTML = tags.map(t => `<button class="chip${t === activeTag ? " on" : ""}" dir="auto" data-tag="${esc(t)}">${esc(t)} <span style="opacity:.55">${counts[t]}</span></button>`).join("");
+    const topicFilter = $("topicFilter");
+    topicFilter.replaceChildren();
+    topicFilter.add(new Option("All topics / همه موضوع‌ها", "all"));
+    topicFilter.add(new Option("Uncategorized / بدون موضوع", "none"));
+    for (const topic of topicNames()) topicFilter.add(new Option(topic, "topic:" + topicKey(topic)));
+    if (![...topicFilter.options].some(opt => opt.value === activeTopicFilter)) activeTopicFilter = "all";
+    topicFilter.value = activeTopicFilter;
     const focusId = keepId || (visible[centerIdx] && visible[centerIdx].id) || (cur && cur.id);
-    visible = sorted().filter(n => (!q || norm(n.text).includes(q)) && (!activeTag || tagsOf(n.text).includes(activeTag)));
-    $("dCount").textContent = (q || activeTag) ? `${visible.length} of ${notes.length} pages` : `${notes.length} page${notes.length === 1 ? "" : "s"} · saved in this browser`;
+    visible = sorted().filter(n =>
+      (!q || norm(n.text + " " + topicOf(n)).includes(q)) &&
+      (!activeTag || tagsOf(n.text).includes(activeTag)) &&
+      (activeTopicFilter === "all" ||
+        (activeTopicFilter === "none" ? !topicOf(n) : "topic:" + topicKey(topicOf(n)) === activeTopicFilter))
+    );
+    $("dCount").textContent = (q || activeTag || activeTopicFilter !== "all") ? `${visible.length} of ${notes.length} pages` : `${notes.length} page${notes.length === 1 ? "" : "s"} · saved in this browser`;
     $("shelf").innerHTML = visible.map(n => `<div class="leaf${n === cur ? " cur" : ""}" data-id="${n.id}" dir="${firstStrong(titleOf(n)) === "rtl" ? "rtl" : "ltr"}">
         ${n.pinned ? CLIP : ""}
         <div class="stampd">${wordCount(n.text).toLocaleString()} w · ${rel(n.updated)}</div>
+        <div class="topic-label" dir="auto">${topicOf(n) ? "⌗ " + esc(topicOf(n)) : ""}</div>
         <div class="pg">${miniPage(n) || "&nbsp;"}</div>
-        <span class="acts"><button data-act="pin">${n.pinned ? "unpin" : "pin"}</button><button data-act="del">delete</button></span>
+        <span class="acts"><button data-act="topic" aria-label="Change topic">topic</button><button data-act="pin">${n.pinned ? "unpin" : "pin"}</button><button data-act="del">delete</button></span>
       </div>`).join("") || `<div class="shelf-empty">${notes.length ? "No pages match." : "The folder is empty."}</div>`;
     const idx = Math.max(0, visible.findIndex(n => n.id === focusId));
     centerIdx = Math.min(idx, Math.max(0, visible.length - 1));
@@ -1470,6 +1683,7 @@
     const leaf = e.target.closest(".leaf"); if (!leaf) return;
     const n = byId(leaf.dataset.id); if (!n) return;
     const act = e.target.closest("[data-act]")?.dataset.act;
+    if (act === "topic") { openTopic(n); return; }
     if (act === "pin") { togglePin(n); return; }
     if (act === "del") { deleteNote(n); return; }
     const i = [...shelf.querySelectorAll(".leaf")].indexOf(leaf);
@@ -1495,7 +1709,7 @@
       else { const q = $("search").value.trim(); openNote(newNote(q ? "# " + q + "\n\n" : "")); }
     }
   });
-  $("scrim").addEventListener("mousedown", () => { closePanel(); if (body.classList.contains("saving")) closeSave(); closeMech(); });
+  $("scrim").addEventListener("mousedown", () => { if (body.classList.contains("topicing")) { closeTopic(); return; } closePanel(); if (body.classList.contains("saving")) closeSave(); closeMech(); });
 
   /* ---------------- find in note ---------------- */
   const fi = $("findInput");
@@ -1625,8 +1839,8 @@
           for (const n of (data.notes || [])) {
             if (typeof n.text !== "string") continue;
             const ex = n.id && byId(n.id);
-            if (ex) { if ((n.updated || 0) > ex.updated) { Object.assign(ex, n); updated++; } }
-            else { notes.push({ id: n.id || uid(), text: n.text, created: n.created || Date.now(), updated: n.updated || Date.now(), pinned: !!n.pinned, caret: n.text.length }); added++; }
+            if (ex) { if ((n.updated || 0) > ex.updated) { const previousTopic = topicOf(ex); Object.assign(ex, n); ex.topic = Object.hasOwn(n, "topic") ? normalizeTopic(n.topic) : previousTopic; updated++; } }
+            else { notes.push({ id: n.id || uid(), text: n.text, topic: normalizeTopic(n.topic), created: n.created || Date.now(), updated: n.updated || Date.now(), pinned: !!n.pinned, caret: n.text.length }); added++; }
           }
         } catch (e) { toast(`Couldn't read ${f.name}`); }
       } else {
@@ -2020,6 +2234,7 @@
     toast("New note");
   };
   $("btnNotes").onclick = toggleDrawer;
+  $("btnTopic").onclick = () => openTopic(cur);
   $("btnNew").onclick = newAndOpen;
   $("btnDir").onclick = cycleDir;
   $("btnFace").onclick = cycleFace;
@@ -2051,6 +2266,8 @@
       if (e.key === "Escape") { e.preventDefault(); closeSave(); return; }
       if (map[code]) { e.preventDefault(); saveAction(map[code], document.querySelector(`#savePanel [data-act="${map[code]}"]`)); return; }
     }
+    if (e.key === "Escape" && body.classList.contains("topicing")) { e.preventDefault(); closeTopic(); return; }
+    if (body.classList.contains("topicing")) return;
     if (ctrl && code === "Comma") { e.preventDefault(); body.classList.contains("mech") ? closeMech() : openMech(); return; }
     if (e.key === "Escape" && body.classList.contains("mech")) { e.preventDefault(); closeMech(); return; }
     if (e.key === "Escape") {
@@ -2171,6 +2388,6 @@
   }
 })();
 </script>
-<script src="offline-pwa.js?v=1.3.0" defer></script>
+<script src="offline-pwa.js?v=1.3.1" defer></script>
 </body>
 </html>

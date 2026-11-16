@@ -93,7 +93,7 @@ test("mobile archive, saving, downloads, and offline reload", { timeout: 125000 
         folder: box("#drawer .folder-back"),
         backingPaper: getComputedStyle(document.querySelector("#drawer .folder-back"), "::before").content,
         currentCss: [...document.querySelectorAll('link[rel="stylesheet"]')]
-          .some(el => el.href.includes("mobile.css?v=1.3.0"))
+          .some(el => el.href.includes("mobile.css?v=1.3.1"))
       };
     });
     assert.ok(folderGeometry.currentCss, "The latest mobile stylesheet must bypass stale service worker caches");
@@ -192,6 +192,66 @@ test("mobile archive, saving, downloads, and offline reload", { timeout: 125000 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(120);
 
+    // Persian letterpress is visible without breaking Arabic joins, and the
+    // note's text remains normal Unicode with an unchanged caret position.
+    const persian = "سلام دنیا و یادداشت‌های فارسی";
+    const printed = await page.evaluate(async text => {
+      const input = document.getElementById("input");
+      input.value += "\n" + text;
+      input.setSelectionRange(input.value.length, input.value.length);
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      await document.fonts.load('450 18px "Digital Ink Persian Press"', text);
+      const words = [...document.querySelectorAll("#text .fa-typed")];
+      const lines = [...document.querySelectorAll("#text .ln.fa-line")];
+      return {
+        fontReady: document.fonts.check('450 18px "Digital Ink Persian Press"', text),
+        fullWord: words.some(el => el.textContent === "سلام"),
+        singleLetter: words.some(el => el.textContent === "س" || el.textContent === "ل"),
+        inking: words.some(el => el.style.getPropertyValue("--fa-ink")),
+        lineCount: lines.length,
+        text: input.value
+      };
+    }, persian);
+    assert.equal(printed.fontReady, true, "Persian printed font must load locally");
+    assert.equal(printed.fullWord, true, "Connected Persian letters must remain in one word");
+    assert.equal(printed.singleLetter, false, "Individual Arabic letters must not be detached");
+    assert.equal(printed.inking, true, "Persian words need stable ink pressure");
+    assert.ok(printed.lineCount >= 1);
+
+    // Subjects can be assigned while editing and changed later from a saved
+    // paper in the archive. Filtering is independent of the note's text.
+    await page.locator("#btnTopic").click();
+    await page.waitForSelector("body.topicing");
+    await page.locator("#topicInput").fill("طرح فیلم");
+    await page.locator("#topicSave").click();
+    assert.equal(await page.locator("body.topicing").count(), 0);
+    assert.match(await page.locator("#btnTopic").textContent(), /طرح فیلم/);
+
+    await page.locator("#btnNotes").click();
+    await page.waitForSelector("body.drawer");
+    await page.waitForFunction(() => {
+      const pocket = document.querySelector("#drawer .pocket").getBoundingClientRect();
+      return Math.abs(pocket.bottom - innerHeight) < 3;
+    }, null, { timeout: 5000 });
+    await page.locator("#topicFilter").selectOption({ label: "طرح فیلم" });
+    assert.equal(await page.locator("#shelf .leaf").count(), 1);
+    assert.match(await page.locator('#shelf .leaf[data-id="mobile-two"] .topic-label').textContent(), /طرح فیلم/);
+    await page.locator('#shelf .leaf[data-id="mobile-two"] button[data-act="topic"]').click();
+    await page.waitForSelector("body.topicing");
+    assert.equal(await page.locator("#topicInput").inputValue(), "طرح فیلم");
+    await page.locator("#topicInput").fill("ایده جدید");
+    await page.locator("#topicSave").click();
+    await page.locator("#topicFilter").selectOption({ label: "ایده جدید" });
+    assert.equal(await page.locator("#shelf .leaf").count(), 1);
+    await page.locator("#dClose").click();
+    const storedTopic = await page.evaluate(() => {
+      const notes = JSON.parse(localStorage.getItem("lamplight.notes.v1"));
+      const note = notes.find(n => n.id === "mobile-two");
+      return { topic: note?.topic, text: note?.text };
+    });
+    assert.equal(storedTopic.topic, "ایده جدید");
+    assert.equal(storedTopic.text, printed.text, "Changing the topic must not rewrite note text");
+
     // A backup must stay usable at phone height and contain all original notes.
     await page.locator("#btnSave").click();
     await page.waitForSelector("body.saving");
@@ -206,6 +266,8 @@ test("mobile archive, saving, downloads, and offline reload", { timeout: 125000 
     const data = JSON.parse(await readFile(await download.path(), "utf8"));
     assert.equal(data.notes.length, 2);
     assert.equal(data.app, "digital-ink");
+    assert.equal(data.notes.find(n => n.id === "mobile-two")?.topic, "ایده جدید");
+
 
     // Updating is user-controlled: no unexpected reload when checking.
     await page.locator("#spClose").click();

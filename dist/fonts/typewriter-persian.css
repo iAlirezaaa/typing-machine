@@ -1,0 +1,68 @@
+/* Digital Ink — Persian mechanical letterpress.
+ * Parastoo is OFL-1.1 (Saber Rastikerdar), verified upstream from Google Fonts.
+ * This face is intentionally restricted to Arabic-script Unicode. Latin text
+ * continues to use Courier Prime and Special Elite as before.
+ */
+@font-face {
+  font-family: "Digital Ink Persian Press";
+  src: url("Parastoo-Persian-Typewriter.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  unicode-range:
+    U+0600-06FF, U+0750-077F, U+0870-089F, U+08A0-08FF,
+    U+200C-200D, U+FB50-FDFF, U+FE70-FEFC;
+}
+
+/* Only the rendered paper receives the mechanical imprint.
+   No letter-spacing or independent character boxes: those disconnect Persian. */
+#text .ln.fa-line {
+  font-family: "Digital Ink Persian Press", "Courier Prime", "Vazirmatn", serif;
+  font-size: 1.075em;
+  line-height: 1.84;
+  letter-spacing: 0;
+  font-kerning: normal;
+  font-variant-ligatures: normal;
+  color: #29231e;
+  text-shadow: 0 .16px .3px rgba(39, 29, 23, .22);
+}
+
+#text .ln.fa-line.h1 { font-size: 1.48em; line-height: 1.58; }
+#text .ln.fa-line.h2 { font-size: 1.22em; line-height: 1.68; }
+
+/* Ink pressure, faded impressions, and slight baseline drift vary per
+   complete connected Persian word, not individual Arabic letters.
+   The deterministic CSS variables never animate or jump between renders. */
+#text .fa-typed,
+#drawer .fa-typed {
+  position: relative;
+  top: var(--fa-y, 0px);
+  opacity: var(--fa-ink, .94);
+  font-weight: var(--fa-weight, 450);
+  letter-spacing: 0 !important;
+  text-shadow:
+    0 .18px .3px rgba(24, 18, 14, .20),
+    .2px .12px .15px rgba(41, 28, 21, .12);
+}
+
+#text .fa-typed.sel,
+#text .fa-typed.hit {
+  opacity: 1; /* selection/search should never become too pale */
+}
+
+#drawer .leaf .pg [dir="rtl"],
+#drawer .leaf .pg .fa-typed {
+  font-family: "Digital Ink Persian Press", "Vazirmatn", var(--type);
+  letter-spacing: 0 !important;
+}
+
+#drawer .leaf .pg [dir="rtl"] {
+  line-height: 1.85;
+  filter: url("#persian-ink");
+}
+
+/* Older notes can be extremely long. Keep those fast by rendering the font,
+   but disabling the additional per-word grain filter at high character counts. */
+#text .ln.fa-grain {
+  filter: url("#persian-ink");
+}
