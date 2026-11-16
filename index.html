@@ -1362,12 +1362,12 @@
       if (Math.abs(d) < bestD) { bestD = Math.abs(d); best = i; }
       // Desktop sheets fan in perspective; on mobile, keep the printed paper
       // large and readable while neighboring sheets show along the edges.
-      const lift = compact() ? -Math.max(0, 1 - a) * 6 : Math.max(0, 1 - a) * -3;
+      const lift = compact() ? (-Math.max(0, 1 - a) * 6).toFixed(2) + "px" : (Math.max(0, 1 - a) * -3).toFixed(2) + "%";
       const sc = compact() ? 1 - Math.min(a, 2) * .055 : 1 - Math.min(a, 2.5) * .05;
       const ry = compact() ? Math.max(-12, Math.min(12, -d * 6)) : Math.max(-46, Math.min(46, -d * 30));
       const tz = compact() ? -Math.min(a, 3) * 24 : -Math.min(a, 3) * 70;
       const rz = compact() ? Math.max(-3, Math.min(3, d * 1.7)) : Math.max(-2, Math.min(2, d * .8)) + (i % 3 - 1) * .35;
-      el.style.transform = `translateY(${lift.toFixed(2)}px) translateZ(${tz.toFixed(1)}px) rotateY(${ry.toFixed(2)}deg) rotate(${rz.toFixed(2)}deg) scale(${sc.toFixed(3)})`;
+      el.style.transform = `translateY(${lift}) translateZ(${tz.toFixed(1)}px) rotateY(${ry.toFixed(2)}deg) rotate(${rz.toFixed(2)}deg) scale(${sc.toFixed(3)})`;
       el.style.setProperty("--shade", Math.min(1, a * .55).toFixed(2));
       el.classList.toggle("right", d > 0);
       el.style.zIndex = String(100 - Math.round(a * 10));
