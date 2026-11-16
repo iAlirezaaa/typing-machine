@@ -34,7 +34,7 @@ jobs:
         run: node scripts/build.mjs
       - name: Validate Persian font and static release
         run: |
-          node --test tests/persian-ink.test.mjs tests/offline-sw.test.mjs tests/mobile-regression.test.mjs tests/media-regression.test.mjs
+          node --test tests/persian-ink.test.mjs tests/topics.test.mjs tests/offline-sw.test.mjs tests/mobile-regression.test.mjs tests/media-regression.test.mjs
           node scripts/build.mjs --check
       - name: Save validated font and release files
         shell: bash
