@@ -3,6 +3,6 @@
   "version": "1.3.1",
   "status": "final",
   "released_at": "2026-11-17",
-  "notes": "OFL Parastoo Persian print font with connected-word ink fading, deterministic baseline variation and paper archive previews.",
+  "notes": "OFL Persian letterpress with stable ink fading, plus editable note topics, archive subject filters and JSON backup support.",
   "requires_online_to_update": true
 }
