@@ -1,12 +1,12 @@
-/* Typing Machine — offline-ready PWA shell.
+/* Digital Ink — offline-ready PWA shell.
  * All required assets are pre-cached before the worker activates. The shell
  * uses network-first navigation with a same-origin, scope-local offline copy.
  * Notes are never stored here: they remain in the browser's localStorage.
  */
 const CACHE_PREFIX = "typing-machine-";
-const CACHE = "typing-machine-v3";
+const CACHE = "typing-machine-v4";
 const ASSETS = [
-  "./", "./index.html", "./offline-pwa.js", "./manifest.webmanifest",
+  "./", "./index.html", "./offline-pwa.js", "./mobile.css", "./manifest.webmanifest",
   "./icons/icon.svg", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png",
   "./fonts/fonts.css",
   "./fonts/CourierPrime-italic-400-latin-ext.woff2", "./fonts/CourierPrime-italic-400-latin.woff2",
@@ -36,7 +36,7 @@ self.addEventListener("install", event => {
     // Updating the service worker downloads a fresh, complete app shell.
     // An installation failure leaves the previous active worker in place.
     await cache.addAll(ASSETS.map(path => new Request(scoped(path), { cache: "reload" })));
-    await self.skipWaiting();
+    // Let a completed update wait for user confirmation in the app.
   })());
 });
 
@@ -53,6 +53,10 @@ self.addEventListener("activate", event => {
 // The UI uses this request to confirm that every file is present before
 // saying "offline ready". Missing/evicted assets are repaired while online.
 self.addEventListener("message", event => {
+  if (event.data?.type === "ACTIVATE_UPDATE") {
+    event.waitUntil(self.skipWaiting());
+    return;
+  }
   if (!event.data || event.data.type !== "CHECK_OFFLINE" || !event.ports || !event.ports[0]) return;
   const port = event.ports[0];
   event.waitUntil((async () => {
@@ -76,26 +80,20 @@ self.addEventListener("fetch", event => {
   const request = event.request;
   const url = new URL(request.url);
   if (request.method !== "GET" || url.origin !== self.location.origin ||
-      !url.pathname.startsWith(appPath) || url.pathname.startsWith(apiPath)) return;
+      !url.pathname.startsWith(appPath) || url.pathname.startsWith(apiPath) ||
+      url.pathname === new URL("release.json", self.registration.scope).pathname) return;
 
   if (request.mode === "navigate" || url.pathname.endsWith(".html")) {
     event.respondWith((async () => {
       try {
         const response = await fetch(request);
-        // Do not replace the working offline shell with an error page.
-        if (response.ok && (response.headers.get("content-type") || "").includes("text/html")) {
-          try {
-            const cache = await caches.open(CACHE);
-            await cache.put(scoped("./index.html"), response.clone());
-          } catch (err) {
-            // Network use still works if storage is full or was disabled.
-          }
-        }
+        // Do not overwrite this version's cached HTML with a future release:
+        // the *new* service worker atomically pre-caches the new app shell.
         return response;
       } catch (err) {
         const cache = await caches.open(CACHE);
         const cached = await cache.match(scoped("./index.html"));
-        return cached || new Response("Offline files are not ready. Reopen Typing Machine online once.", {
+        return cached || new Response("Offline files are not ready. Reopen Digital Ink online once.", {
           status: 503, headers: { "Content-Type": "text/plain; charset=utf-8" }
         });
       }
