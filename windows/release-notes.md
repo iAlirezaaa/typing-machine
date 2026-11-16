@@ -1,7 +1,7 @@
 # Digital Ink — Windows + mobile release
 
 ## Windows (64-bit)
-Download `DigitalInk-Setup-1.2.1-x64.exe` from the assets below. Run Setup, choose whether you want a desktop shortcut or **launch at Windows sign-in** (off by default), and select **Launch Digital Ink now** after installation.
+Download `DigitalInk-Setup-1.2.2-x64.exe` from the assets below. Run Setup, choose whether you want a desktop shortcut or **launch at Windows sign-in** (off by default), and select **Launch Digital Ink now** after installation.
 
 The installer bundles its Python runtime. **You do not need to install Python.** A current Microsoft Edge or Google Chrome installation is used to show the application in a standalone app window. It works offline because all app files are installed locally, and the server listens only on `127.0.0.1`.
 
@@ -18,7 +18,7 @@ The repository [README](https://github.com/iAlirezaaa/typing-machine#readme) con
 ---
 
 ## فارسی
-نصب‌کنندهٔ ویندوز `DigitalInk-Setup-1.2.1-x64.exe` را از فایل‌های همین ریلیز دریافت کنید. پس از نصب، برنامه به‌صورت پیش‌فرض اجرا می‌شود. گزینهٔ **Start with Windows** اختیاری است و خودکار فعال نمی‌شود. برای اجرای برنامه نیازی به نصب Python نیست؛ Microsoft Edge یا Google Chrome باید موجود باشد.
+نصب‌کنندهٔ ویندوز `DigitalInk-Setup-1.2.2-x64.exe` را از فایل‌های همین ریلیز دریافت کنید. پس از نصب، برنامه به‌صورت پیش‌فرض اجرا می‌شود. گزینهٔ **Start with Windows** اختیاری است و خودکار فعال نمی‌شود. برای اجرای برنامه نیازی به نصب Python نیست؛ Microsoft Edge یا Google Chrome باید موجود باشد.
 
 یادداشت‌ها در پوشهٔ اختصاصی کاربر ذخیره می‌شوند. برای انتقال یادداشت‌های نسخه‌های قبلی، از فایل پشتیبان JSON استفاده کنید. نصب‌کننده فعلاً امضای دیجیتال ندارد.
 
