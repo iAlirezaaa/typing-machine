@@ -24,6 +24,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         ".webmanifest": "application/manifest+json",
         ".woff2": "font/woff2",
         ".js": "text/javascript",
+        ".wav": "audio/wav",
         ".svg": "image/svg+xml",
         ".json": "application/json",
     }
@@ -71,7 +72,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         if any(part.startswith(".") for part in parts if part):
             return self._json(404, {})
         allowed = path in ("/", "/index.html", "/sw.js", "/manifest.webmanifest", "/mobile.css", "/offline-pwa.js", "/release.json")
-        allowed = allowed or path.startswith(("/fonts/", "/icons/"))
+        allowed = allowed or path.startswith(("/fonts/", "/icons/", "/sounds/"))
         if not allowed:
             return self._json(404, {})
         return super().do_GET()
