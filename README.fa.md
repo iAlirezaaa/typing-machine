@@ -2,6 +2,8 @@
 
 محیطی آرام برای نوشتن یادداشت‌های فارسی و انگلیسی، با ظاهر ماشین‌تحریر، نور ملایم، کاغذ گرم و صدای کلیدها.
 
+**وب‌سایت:** [ialirezaaa.github.io/typing-machine](https://ialirezaaa.github.io/typing-machine/) *(پس از فعال‌سازی GitHub Pages)*
+
 [English](README.md) · [مجوز MIT](LICENSE)
 
 ![نمای فارسی ماشین تایپ](docs/screenshots/persian.jpg)
