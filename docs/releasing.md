@@ -45,6 +45,25 @@ The committed `dist/` directory contains a complete standalone static distributi
 
 GitHub Actions verifies the checked-in distribution and publishes an artifact ZIP. The source and built app require no npm runtime dependencies, backend, account, cloud notes or paid hosting.
 
+## Windows desktop installer (GitHub Release)
+
+The Windows app is packaged with **PyInstaller** + **Inno Setup** from the same finalized static `dist/` folder. Source code lives in `windows/desktop.py`, `windows/installer.iss`, and `.github/workflows/windows-release.yml`.
+
+On a pull request, the Windows workflow builds and smoke-tests the x64 executable and produces `DigitalInk-Setup-<version>-x64.exe` as a **GitHub Actions artifact**. On a push to `main`, if the version tag does not already exist, it also publishes the installer to the official **GitHub Release** for that version. Existing version tags are never silently moved. To release changes after a tag exists, bump `release.json`, the `app-version` meta tag, the versioned Service Worker cache, and rebuilt `dist/`.
+
+1. Users download the Setup.exe from **Releases** and run it without installing Python. The bundled launcher starts a localhost-only HTTP server and opens the web interface in Edge or Chrome with a dedicated user-data directory.
+2. Installation is per-user and requires no admin privileges. **Launch Digital Ink now** is offered at the end of setup. A **Start with Windows** shortcut is available as an opt-in task; no autorun is forced at system login.
+3. Installed web assets live under the user's Program Files equivalent; notes remain under `%LOCALAPPDATA%\\DigitalInk\\BrowserProfile`. An uninstall intentionally leaves the browser profile and personal notes untouched.
+4. The port `127.0.0.1:8765` is held stable for note-storage compatibility. A different program using that port prevents the launcher from starting; the program never opens an unverified foreign service. An existing Digital Ink server can be reused.
+5. The installer is **unsigned**. SmartScreen may warn. Distribution is only through this repository's Actions artifacts and Releases; code signing is a future release requirement.
+6. For legacy notes (the original file launch or older localhost browser profile), **export JSON** from the old version and import it into the installed app. This avoids relying on browser cross-profile storage transfer.
+
+Manual Windows verification on a clean Windows 10/11 x64 VM: install, auto-launch, write, reopen, reboot with and without the optional startup shortcut, backup/import JSON, and uninstall/reinstall with notes preserved.
+
+## Mobile gestures and contextual help
+
+Phone/tablet touch interfaces hide the desktop keyboard shortcut table. Drag the **paper** vertically to read old text; a short tap on the writing surface moves the caret to the last character and requests the mobile keyboard. Desktop text selection stays unchanged. Interactive dialogs, the archive, and button taps are excluded from paper-swipe interception. A Playwright Chromium test covers gesture handling and mobile contextual help, but real-device Safari and Chrome tests remain necessary.
+
 ## Testing limits
 
 Chromium device emulation is not a substitute for hands-on Safari testing on physical iOS devices. Before announcing universal mobile compatibility, test the iPhone Share sheet, Home Screen installation, keyboard resizing, JSON import and export, and airplane-mode re-open on the target devices.
