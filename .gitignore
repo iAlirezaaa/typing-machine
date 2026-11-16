@@ -1,0 +1,13 @@
+/archive/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+Thumbs.db
+node_modules/
+
+# one-time hand-over of notes between the file and web versions (contains personal notes)
+/migrate.json
+/migrate.done.json
+__pycache__/
