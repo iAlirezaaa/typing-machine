@@ -180,13 +180,17 @@
         report("No finalized update available");
         return;
       }
-      if (compareVersions(release.version, appVersion) <= 0) {
+      const newerRelease = compareVersions(release.version, appVersion) > 0;
+      const registration = await getRegistration();
+      currentRegistration = registration;
+      // A newly-fetched HTML page can already have the latest version while
+      // still being controlled by the old service worker. Offer activation
+      // of any waiting worker for this finalized release in that case too.
+      if (!newerRelease && !registration.waiting && !registration.installing) {
         setReady(false);
         report("Up to date · v" + appVersion);
         return;
       }
-      const registration = await getRegistration();
-      currentRegistration = registration;
       await registration.update();
       const installed = await waitForInstalled(registration);
       if (installed && registration.waiting) {
