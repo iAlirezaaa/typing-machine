@@ -6,7 +6,7 @@
 <title>Digital Ink</title>
 <meta name="description" content="A quiet typewriter for your notes.">
 <meta name="application-name" content="Digital Ink">
-<meta name="app-version" content="1.2.1">
+<meta name="app-version" content="1.2.2">
 <meta name="theme-color" content="#fbf8f0">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -501,7 +501,7 @@
   body.typing #offlineStatus { opacity: .35; }
   @media (max-width: 640px) { #offlineStatus { bottom: calc(9px + env(safe-area-inset-bottom, 0px)); left: 10px; } }
 </style>
-<link rel="stylesheet" href="mobile.css">
+<link rel="stylesheet" href="mobile.css?v=1.2.2">
 </head>
 <body class="boot">
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -569,7 +569,7 @@
       </div>
       <div class="pocket-row">
         <span class="dr-sub"><span class="savedot"></span><span id="dCount">0 notes</span></span>
-        <span class="pocket-hint"><span class="desktop-archive-hint">scroll to leaf through your pages · click or Enter to take one out</span><span class="mobile-archive-hint">Swipe left or right to turn the paper pages · tap the centered sheet to open</span></span>
+        <span class="pocket-hint"><span class="desktop-archive-hint">scroll to leaf through your pages · click or Enter to take one out</span><span class="mobile-archive-hint">Swipe left or right to turn real paper sheets · tap the middle sheet to type</span></span>
         <button class="sp-btn pri" id="dNew">+ New page</button>
         <button class="sp-btn" id="dSave">Save &amp; backup…</button>
       </div>
@@ -2118,6 +2118,6 @@
   }
 })();
 </script>
-<script src="offline-pwa.js" defer></script>
+<script src="offline-pwa.js?v=1.2.2" defer></script>
 </body>
 </html>

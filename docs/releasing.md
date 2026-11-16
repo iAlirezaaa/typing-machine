@@ -4,11 +4,17 @@ Digital Ink is a static, local-first Progressive Web App. The repository retains
 
 ## Mobile behavior
 
-- Phone screens show a horizontal, inertial, scroll-snapping coverflow of overlapping full-size typed sheets, like the desktop paper folder. Swipe to select a sheet, then tap the centered sheet to open it. Pin/delete actions remain available on the selected sheet.
+- Phone screens show portrait-format, horizontal scroll-snapping paper sheets anchored to the compact manila folder flap, not full-width note cards floating above a large empty region. Decorative backing paper remains visible with just one saved note. Swipe between the actual notes, then tap the centered sheet. Pin/delete actions stay on the selected sheet.
 - Save & Backup is a vertically scrollable dialog that respects safe-area insets and small viewports.
 - On mobile browsers supporting the Web Share API, exporting notes and JSON backups opens the share sheet, including the option to save to Files. Other browsers use a standard download link.
 - Automatic saving happens during typing and when the app is backgrounded. Use JSON backup regularly; clearing browser storage may still destroy notes.
 - Offline readiness is verified against a complete precache. An installed icon by itself does **not** prove offline files are ready.
+
+## Avoiding stale mobile styles after deployment
+
+Older service-worker releases cached `mobile.css` and `offline-pwa.js` with a cache-first strategy, so new online HTML could display the previous mobile design. Starting in v1.2.2, the HTML references `mobile.css?v=1.2.2` and `offline-pwa.js?v=1.2.2` (the new worker pre-caches both exact URLs for offline use) and the worker fetches these mutable UI assets network-first while connected. Update these version tokens along with the HTML meta tag and worker cache name on later releases.
+
+Safe refresh: open the web URL with a new query parameter while online, then install any waiting update through Help. Never instruct users to clear website storage without first exporting the JSON backup, because the notes are local-only.
 
 ## Updating from the app
 

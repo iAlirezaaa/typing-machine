@@ -29,7 +29,7 @@ The public, installable **Digital Ink web app** runs at **https://ialirezaaa.git
 
 ## Windows installer (offline desktop app)
 
-Download **Digital Ink Setup for Windows x64** from [GitHub Releases](https://github.com/iAlirezaaa/typing-machine/releases/latest). Run the `DigitalInk-Setup-1.2.1-x64.exe` installer; it creates a Start Menu shortcut and offers to **Launch Digital Ink now** when setup finishes. Desktop shortcut and **Start with Windows** are optional (auto-start at login is **off by default**).
+Download **Digital Ink Setup for Windows x64** from [GitHub Releases](https://github.com/iAlirezaaa/typing-machine/releases/latest). Run the `DigitalInk-Setup-1.2.2-x64.exe` installer; it creates a Start Menu shortcut and offers to **Launch Digital Ink now** when setup finishes. Desktop shortcut and **Start with Windows** are optional (auto-start at login is **off by default**).
 
 The installer bundles the local Python runtime (you do **not** install Python). It opens its own app-style Microsoft Edge/Chrome window and serves all files strictly from `127.0.0.1`. Writing is kept locally in a dedicated browser profile under `%LOCALAPPDATA%\DigitalInk\BrowserProfile`; uninstalling does not intentionally remove notes. An existing Edge or Chrome installation is required. Installer is not code-signed; Windows SmartScreen may warn. Update through GitHub Releases.
 
@@ -67,6 +67,11 @@ If the indicator says **offline not ready**, reconnect to the internet and use *
 Notes are saved in the device's browser storage, **not uploaded** to GitHub or a server. Home-screen apps and Safari may have separate storage; notes do not automatically transfer or sync. Use **Save & backup → JSON** regularly, especially before clearing website data or reinstalling the app.
 
 ## Digital Ink on phones
+
+**Mobile paper-folder refresh (v1.2.2):** Saved notes sit on portrait-sized sheets whose lower edges tuck into the manila folder. The compact search and backup flap now touches the papers, eliminating the large blank gap. Even a single blank note shows the edges of its paper stack (decorative backing sheets, not additional saved notes).
+
+**If Safari still shows the old layout**, open the [fresh site URL](https://ialirezaaa.github.io/typing-machine/?v=1.2.2) while online and refresh. This release uses versioned CSS and JavaScript links to bypass older service-worker caches. For a Home Screen installation, select **Help → Check for updates → Install ready update** when offered. **Do not clear Safari's website data to fix the layout**: it can delete your locally stored notes. Export **Save & backup → JSON** before reinstalling or changing storage.
+
 
 The home-screen app now has a tactile, horizontally swipeable paper-folder archive, a keyboard-aware visible typing line on iOS, and a scrollable **Save & backup** panel. On iPhone, exports can use the iOS **Share / Save to Files** sheet; supported browsers use the normal download option otherwise. The original note storage keys are preserved across the rename from Lamplight.
 

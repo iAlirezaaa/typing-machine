@@ -1,8 +1,8 @@
 {
   "name": "Digital Ink",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "status": "final",
   "released_at": "2026-11-16",
-  "notes": "iPhone keyboard-aware typing guide, visible ink caret and swipeable layered-paper archive.",
+  "notes": "Mobile folder now joins paper sheets and compact flap; versioned PWA CSS/JS bypass old iPhone caches.",
   "requires_online_to_update": true
 }

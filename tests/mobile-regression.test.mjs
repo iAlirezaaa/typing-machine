@@ -12,7 +12,11 @@ test("Mobile archive is swipeable paper while save dialogs remain scrollable", (
   assert.match(css, /overflow-y: auto/);
   assert.match(css, /scroll-snap-type: x mandatory/);
   assert.match(css, /touch-action: pan-x/);
-  assert.match(css, /--leafH: min\(53dvh, 470px\)/);
+  assert.ok(css.includes('--pocketH: clamp(208px, 31dvh, 286px)'));
+  assert.ok(css.includes('top: max(calc(48px + env(safe-area-inset-top, 0px))'));
+  assert.ok(css.includes('calc(var(--folderEdge) - var(--leafH) + 40px)'));
+  assert.ok(css.includes('.folder-back::before'));
+  assert.ok(css.includes('.folder-back::after'));
   assert.match(css, /body\.mobile-editing #caret::before/);
   assert.match(css, /body\.mobile-keyboard #hudR/);
   assert.doesNotMatch(css, /flex-direction: column; gap: 9px;/);
@@ -51,5 +55,15 @@ test("Mobile typing line follows the visible iOS viewport", () => {
   assert.match(html, /classList\.add\("mobile-editing"\)/);
   assert.match(html, /const left = el\.offsetLeft \+ el\.offsetWidth \/ 2 - shelf\.clientWidth \/ 2/);
   assert.match(html, /mobile-archive-hint/);
+  assert.ok(html.includes('href="mobile.css?v=1.2.2"'));
+  assert.ok(html.includes('src="offline-pwa.js?v=1.2.2"'));
   assert.match(html, /Tap the paper to return to the last line/);
+});
+
+test("New worker repairs CSS/JS staleness on future releases", () => {
+  const sw = read("sw.js");
+  assert.match(sw, /typing-machine-v7/);
+  assert.ok(sw.includes('"./mobile.css?v=1.2.2"'));
+  assert.ok(sw.includes('"./offline-pwa.js?v=1.2.2"'));
+  assert.ok(sw.includes('fetch(request, { cache: "no-store" })'));
 });

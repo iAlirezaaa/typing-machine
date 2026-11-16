@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
+import { mkdir } from "node:fs/promises";
 import { setTimeout as delay } from "node:timers/promises";
 import { chromium } from "playwright";
 
@@ -59,6 +60,10 @@ test("mobile archive, saving, downloads, and offline reload", { timeout: 125000 
     // not a vertical text list.
     await page.locator("#btnNotes").click();
     await page.waitForSelector("body.drawer");
+    await page.waitForFunction(() => {
+      const pocket = document.querySelector("#drawer .pocket").getBoundingClientRect();
+      return Math.abs(pocket.bottom - innerHeight) < 3;
+    }, null, { timeout: 5000 }); // wait until the folder's physical entrance settles
     assert.equal(await page.locator("#shelf .leaf").count(), 2);
     const layout = await page.locator("#shelf").evaluate(el => ({
       overflowX: getComputedStyle(el).overflowX,
@@ -75,6 +80,34 @@ test("mobile archive, saving, downloads, and offline reload", { timeout: 125000 
     assert.equal(layout.touchAction, "pan-x");
     assert.ok(layout.paperHeight > 250, "Saved notes should look like full-size paper");
     assert.ok(layout.scrollWidth > layout.clientWidth, "Adjacent pages must be swipeable");
+    const folderGeometry = await page.evaluate(() => {
+      const box = selector => {
+        const r = document.querySelector(selector).getBoundingClientRect();
+        return { top:r.top, bottom:r.bottom, left:r.left, right:r.right,
+          width:r.width, height:r.height };
+      };
+      return {
+        width: innerWidth, height: innerHeight,
+        paper: box("#shelf .leaf.center"),
+        pocket: box("#drawer .pocket"),
+        folder: box("#drawer .folder-back"),
+        backingPaper: getComputedStyle(document.querySelector("#drawer .folder-back"), "::before").content,
+        currentCss: [...document.querySelectorAll('link[rel="stylesheet"]')]
+          .some(el => el.href.includes("mobile.css?v=1.2.2"))
+      };
+    });
+    assert.ok(folderGeometry.currentCss, "The latest mobile stylesheet must bypass stale service worker caches");
+    assert.ok(folderGeometry.paper.width >= folderGeometry.width * .64 &&
+      folderGeometry.paper.width <= folderGeometry.width * .82,
+      "Notes must look like portrait paper, not full-width cards: " + JSON.stringify(folderGeometry));
+    assert.ok(folderGeometry.paper.height > 285, "Notes must be tall paper sheets");
+    assert.ok(folderGeometry.pocket.top - folderGeometry.paper.bottom < 30 &&
+      folderGeometry.pocket.top - folderGeometry.paper.bottom > -140,
+      "The paper must enter the folder without a large empty vertical gap: " + JSON.stringify(folderGeometry));
+    assert.notEqual(folderGeometry.backingPaper, "none", "Single-page folders still need physical paper edges");
+    await mkdir("artifacts", { recursive: true });
+    await page.screenshot({ path: "artifacts/mobile-folder-390x844.png", animations: "disabled" });
+
 
     // A hand swipe moves the paper shelf (not the page underneath).
     const cdp = await context.newCDPSession(page);
@@ -175,6 +208,31 @@ test("mobile archive, saving, downloads, and offline reload", { timeout: 125000 
     await page.reload({ waitUntil: "domcontentloaded" });
     assert.match(await page.title(), /Digital Ink/);
     assert.ok((await page.locator("#btnNotes").count()) === 1);
+
+    // Reproduce the user's real one-page situation: no extra notes may be
+    // invented just to make the folder look layered.
+    await page.evaluate(() => {
+      window.__noSave = true; // prevent the departing document overwriting the fixture
+      const ts = Date.now();
+      const one = [{ id: "single-page", text: "", created: ts, updated: ts, caret: 0, pinned: false }];
+      localStorage.setItem("lamplight.notes.v1", JSON.stringify(one));
+      localStorage.setItem("lamplight.settings.v1", JSON.stringify({ current: one[0].id }));
+    });
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.locator("#btnNotes").click();
+    await page.waitForSelector("body.drawer");
+    await page.waitForFunction(() => {
+      const pocket = document.querySelector("#drawer .pocket").getBoundingClientRect();
+      return Math.abs(pocket.bottom - innerHeight) < 3;
+    }, null, { timeout: 5000 }); // wait until the folder's physical entrance settles
+    assert.equal(await page.locator("#shelf .leaf").count(), 1,
+      "Exactly one note must remain; the surrounding pages are decorative");
+    const oneSheet = await page.locator("#shelf .leaf").boundingBox();
+    const onePocket = await page.locator("#drawer .pocket").boundingBox();
+    assert.ok(oneSheet.width < 330 && oneSheet.height > 285, "The sole note must still look like a real sheet");
+    assert.ok(onePocket.y - (oneSheet.y + oneSheet.height) < 30,
+      "One saved sheet must not float above a distant folder flap");
+    await page.screenshot({ path: "artifacts/mobile-single-page-390x844.png", animations: "disabled" });
     assert.deepEqual(errors, [], "No runtime JavaScript errors");
   } finally {
     await browser?.close();
