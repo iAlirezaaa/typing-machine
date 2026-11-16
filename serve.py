@@ -38,7 +38,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             if origin in ("null", f"http://{HOST}:{PORT}"):
                 self.send_header("Access-Control-Allow-Origin", origin)
                 self.send_header("Vary", "Origin")
-        if self.path in ("/", "/index.html", "/sw.js", "/manifest.webmanifest"):
+        if self.path in ("/", "/index.html", "/sw.js", "/manifest.webmanifest", "/release.json"):
             self.send_header("Cache-Control", "no-cache")
         super().end_headers()
 
@@ -60,7 +60,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         if self.path.startswith("/api/") and not self._allowed_origin():
             return self._json(403, {"error": "origin"})
         if self.path.split("?")[0] == "/api/ping":
-            return self._json(200, {"app": "lamplight"})
+            return self._json(200, {"app": "digital-ink"})
         if self.path.split("?")[0] == "/api/migrate":
             if os.path.exists(MIGRATE):
                 with open(MIGRATE, "r", encoding="utf-8") as f:
@@ -70,7 +70,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         parts = path.split("/")
         if any(part.startswith(".") for part in parts if part):
             return self._json(404, {})
-        allowed = path in ("/", "/index.html", "/sw.js", "/manifest.webmanifest")
+        allowed = path in ("/", "/index.html", "/sw.js", "/manifest.webmanifest", "/mobile.css", "/offline-pwa.js", "/release.json")
         allowed = allowed or path.startswith(("/fonts/", "/icons/"))
         if not allowed:
             return self._json(404, {})
