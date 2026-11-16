@@ -6,7 +6,7 @@
 const CACHE_PREFIX = "typing-machine-";
 const CACHE = "typing-machine-v3";
 const ASSETS = [
-  "./", "./index.html", "./manifest.webmanifest",
+  "./", "./index.html", "./offline-pwa.js", "./manifest.webmanifest",
   "./icons/icon.svg", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png",
   "./fonts/fonts.css",
   "./fonts/CourierPrime-italic-400-latin-ext.woff2", "./fonts/CourierPrime-italic-400-latin.woff2",
