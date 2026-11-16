@@ -93,7 +93,7 @@ test("mobile archive, saving, downloads, and offline reload", { timeout: 125000 
         folder: box("#drawer .folder-back"),
         backingPaper: getComputedStyle(document.querySelector("#drawer .folder-back"), "::before").content,
         currentCss: [...document.querySelectorAll('link[rel="stylesheet"]')]
-          .some(el => el.href.includes("mobile.css?v=1.3.0"))
+          .some(el => el.href.includes("mobile.css?v=1.3.1"))
       };
     });
     assert.ok(folderGeometry.currentCss, "The latest mobile stylesheet must bypass stale service worker caches");
