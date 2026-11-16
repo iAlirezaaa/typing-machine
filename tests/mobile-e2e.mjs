@@ -68,6 +68,33 @@ test("mobile archive, saving, downloads, and offline reload", { timeout: 125000 
     await page.locator('#shelf .leaf[data-id="mobile-two"] .pg').click();
     await page.waitForFunction(() => !document.body.classList.contains("drawer"));
 
+    // Touch paper: swiping reads older lines; a tap returns to the final line
+    // and focuses the hidden textarea (the mobile keyboard input).
+    const longNote = Array.from({ length: 42 }, (_, i) => "Test line " + (i + 1)).join("\\n");
+    await page.evaluate(text => {
+      const input = document.getElementById("input");
+      input.value = text;
+      input.setSelectionRange(text.length, text.length);
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    }, longNote);
+    const sheetBefore = await page.locator("#sheet").evaluate(el => el.style.transform);
+    const cdp = await context.newCDPSession(page);
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 200, y: 270 }] });
+    for (const y of [310, 360, 410, 470]) {
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 200, y }] });
+    }
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    const sheetAfter = await page.locator("#sheet").evaluate(el => el.style.transform);
+    assert.notEqual(sheetBefore, sheetAfter, "Swiping over the writing surface should move the paper");
+    await page.touchscreen.tap(200, 270);
+    const caret = await page.evaluate(() => ({
+      start: document.getElementById("input").selectionStart,
+      end: document.getElementById("input").value.length,
+      focused: document.activeElement?.id === "input"
+    }));
+    assert.equal(caret.start, caret.end, "Tap on the paper should jump to the final line");
+    assert.equal(caret.focused, true, "Tap should focus the keyboard input");
+
     // A backup must stay usable at phone height and contain all original notes.
     await page.locator("#btnSave").click();
     await page.waitForSelector("body.saving");
@@ -86,6 +113,10 @@ test("mobile archive, saving, downloads, and offline reload", { timeout: 125000 
     // Updating is user-controlled: no unexpected reload when checking.
     await page.locator("#spClose").click();
     await page.locator("#btnHelp").click();
+    assert.equal(await page.locator(".desktop-shortcuts").isVisible(), false,
+      "Keyboard-only shortcuts must not appear in the mobile help");
+    assert.equal(await page.locator(".mobile-touch-guide").isVisible(), true,
+      "Mobile help should explain touch gestures");
     await page.locator("#checkUpdates").click();
     await page.waitForFunction(() => {
       const el = document.querySelector("#appUpdateStatus");
