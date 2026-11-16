@@ -35,6 +35,8 @@ The installer bundles the local Python runtime (you do **not** install Python). 
 
 ## Original icon and recorded typewriter sounds
 
+![Original Digital Ink typewriter application icon](icons/icon-192.png)
+
 The new app icon features a vintage mechanical typewriter and an aged sheet of paper; it is included as SVG and as PWA/Windows icon sizes. The writing experience now plays **authentic CC0 recordings** of three different key presses, a mechanical carriage return and paper movement. Samples are loaded on the first user interaction and kept in the offline app; if an audio file cannot be decoded, the existing procedural sound engine is used instead. Turn sound on/off with **sound**, and set the level with the slider.
 
 Sound licensing and source credits: [Third-party notices](THIRD_PARTY_NOTICES.md).
