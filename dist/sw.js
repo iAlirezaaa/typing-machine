@@ -4,9 +4,10 @@
  * Notes are never stored here: they remain in the browser's localStorage.
  */
 const CACHE_PREFIX = "typing-machine-";
-const CACHE = "typing-machine-v6";
+const CACHE = "typing-machine-v7";
 const ASSETS = [
-  "./", "./index.html", "./offline-pwa.js", "./mobile.css", "./manifest.webmanifest",
+  "./", "./index.html", "./offline-pwa.js", "./mobile.css",
+  "./offline-pwa.js?v=1.2.2", "./mobile.css?v=1.2.2", "./manifest.webmanifest",
   "./icons/icon.svg", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png",
   "./fonts/fonts.css",
   "./fonts/CourierPrime-italic-400-latin-ext.woff2", "./fonts/CourierPrime-italic-400-latin.woff2",
@@ -96,6 +97,27 @@ self.addEventListener("fetch", event => {
         return cached || new Response("Offline files are not ready. Reopen Digital Ink online once.", {
           status: 503, headers: { "Content-Type": "text/plain; charset=utf-8" }
         });
+      }
+    })());
+    return;
+  }
+
+  // Mobile UI updates are deliberately network-first while online.
+  // Older installed service workers used cache-first for mobile.css, causing
+  // a new HTML page to render with a previous release's mobile layout.
+  // Versioned URLs in the HTML also bypass those older workers.
+  if (url.pathname.endsWith("/mobile.css") || url.pathname.endsWith("/offline-pwa.js")) {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE);
+      try {
+        const response = await fetch(request, { cache: "no-store" });
+        if (response.ok) {
+          try { await cache.put(request, response.clone()); } catch (err) { /* storage quota */ }
+        }
+        return response;
+      } catch (error) {
+        const saved = await cache.match(request);
+        return saved || new Response("Offline asset unavailable", { status: 503 });
       }
     })());
     return;
