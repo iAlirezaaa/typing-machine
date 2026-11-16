@@ -2,7 +2,7 @@
 
 A quiet, vintage-inspired typewriter for Persian and English notes. Warm paper, a moving carriage, a soft pool of light, and mechanical key sounds — in your browser.
 
-**Website:** [ialirezaaa.github.io/typing-machine](https://ialirezaaa.github.io/typing-machine/) *(available after GitHub Pages is enabled)*
+**Website:** [ialirezaaa.github.io/typing-machine](https://ialirezaaa.github.io/typing-machine/)
 
 [راهنمای فارسی](README.fa.md) · [MIT license](LICENSE)
 
@@ -22,9 +22,9 @@ A quiet, vintage-inspired typewriter for Persian and English notes. Warm paper, 
 
 The web app runs directly from this repository, without a build step or a backend.
 
-**Public URL (once GitHub Pages is enabled):** https://ialirezaaa.github.io/typing-machine/
+**Public URL:** https://ialirezaaa.github.io/typing-machine/
 
-To enable it once, open [Repository Settings → Pages](https://github.com/iAlirezaaa/typing-machine/settings/pages) and select **Deploy from a branch** → **main** → **/(root)** → **Save**. GitHub Pages then publishes the existing `index.html` and deploys updates whenever `main` changes. The `.nojekyll` file keeps the site as plain static assets.
+GitHub Pages is enabled and the first deployment succeeded. The site publishes the existing `index.html` from **main** → **/(root)** and redeploys on subsequent changes. The `.nojekyll` file keeps the site as plain static assets.
 
 The website and the local launcher have **separate browser storage**. To move writing from localhost or a file-based version, export a JSON backup in the old version and import it on the website. The hosted version does not use `serve.py` or transfer notes to a server.
 
