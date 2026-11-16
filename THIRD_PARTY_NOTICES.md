@@ -25,3 +25,13 @@ Bundled audio copies come from [Appletrumpet/Typewriter `public/sfx/`](https://g
 ### App icon
 
 `icons/icon-art.webp.b64` is original icon artwork made for Digital Ink. `scripts/vendor-media.py` renders the PNG and SVG app icon assets from this source. The icon is not a third-party stock illustration.
+
+## Persian typewriter print font
+
+**Parastoo** by **Saber Rastikerdar / The Parastoo Project Authors** is bundled for the worn Persian letterpress effect. The font is distributed under the **SIL Open Font License 1.1**.
+
+- Official source: [Google Fonts — Parastoo](https://github.com/google/fonts/tree/main/ofl/parastoo) (the pinned variable TTF source and license are verified by Git blob hash in `scripts/vendor-persian-font.py`).
+- Bundled font: [`fonts/Parastoo-Persian-Typewriter.woff2`](fonts/Parastoo-Persian-Typewriter.woff2); copied/converted with fontTools, with no changes to font outlines.
+- License text: [`fonts/licenses/Parastoo-OFL.txt`](fonts/licenses/Parastoo-OFL.txt).
+
+The CSS font-face uses the Arabic-script Unicode range only. Latin typewriter text remains in Courier Prime / Special Elite. Persian ink pressure and baseline jitter are CSS rendering effects, not changes to the font or stored note content.
