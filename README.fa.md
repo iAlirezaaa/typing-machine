@@ -2,7 +2,7 @@
 
 محیطی آرام برای نوشتن یادداشت‌های فارسی و انگلیسی، با ظاهر ماشین‌تحریر، نور ملایم، کاغذ گرم و صدای کلیدها.
 
-**وب‌سایت:** [ialirezaaa.github.io/typing-machine](https://ialirezaaa.github.io/typing-machine/) *(پس از فعال‌سازی GitHub Pages)*
+**وب‌سایت:** [ialirezaaa.github.io/typing-machine](https://ialirezaaa.github.io/typing-machine/)
 
 [English](README.md) · [مجوز MIT](LICENSE)
 
@@ -22,9 +22,9 @@
 
 این برنامه بدون نیاز به سرور یا مرحلهٔ ساخت، مستقیماً از ریپوی گیت‌هاب قابل انتشار است.
 
-**آدرس سایت (پس از فعال‌سازی GitHub Pages):** https://ialirezaaa.github.io/typing-machine/
+**آدرس سایت:** https://ialirezaaa.github.io/typing-machine/
 
-برای فعال‌سازی یک‌باره به [Settings → Pages](https://github.com/iAlirezaaa/typing-machine/settings/pages) بروید. در بخش Build and deployment گزینهٔ **Deploy from a branch** را انتخاب کنید، سپس شاخهٔ **main** و پوشهٔ **/(root)** را تعیین کنید و **Save** بزنید. پس از آن، تغییرات شاخهٔ main به‌صورت خودکار منتشر می‌شود.
+GitHub Pages فعال شده و انتشار اولیه با موفقیت انجام شده است. نسخهٔ سایت مستقیماً از شاخهٔ **main** و پوشهٔ **/(root)** منتشر می‌شود و تغییرات بعدی شاخهٔ main نیز به‌صورت خودکار روی سایت اعمال می‌شوند.
 
 نسخهٔ آنلاین و نسخهٔ محلی، حافظهٔ مرورگر جداگانه دارند. برای انتقال یادداشت‌ها از نسخهٔ قبلی، خروجی پشتیبان JSON بگیرید و در سایت وارد کنید. سایت برای اجرا به `serve.py` نیاز ندارد و یادداشت‌های شما را روی سرور ذخیره نمی‌کند.
 
