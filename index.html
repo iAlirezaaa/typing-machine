@@ -404,10 +404,45 @@
   .pocket-hint { flex: 1; font: 12px var(--type); color: var(--manila-ink); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .pocket .sp-btn { padding: 8px 13px; }
   @media (max-width: 640px) { .pocket-hint { display: none; } }
+
+  /* The same manila-paper visual language for topics on mobile and desktop. */
+  #btnTopic { max-width: 142px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ribbon); }
+  #topicPanel { position: fixed; z-index: 35; left: 50%; top: 50%;
+    transform: translate(-50%, -47%) scale(.97); width: min(440px, calc(100vw - 28px));
+    opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .2s, transform .2s, visibility 0s linear .2s; }
+  body.topicing #topicPanel { opacity: 1; visibility: visible; pointer-events: auto;
+    transform: translate(-50%, -50%) scale(1); transition: opacity .2s, transform .2s, visibility 0s; }
+  #topicPanel .topic-sheet { background: #e9d8b3; border: 1px solid #c9b186; border-radius: 7px;
+    box-shadow: 0 20px 75px rgba(43,30,15,.4), inset 0 2px 0 #fff8e9;
+    padding: 19px; color: #332b22; font: 13px/1.55 var(--sans); }
+  .topic-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; font: 700 14px/1.4 var(--type); }
+  #topicClose { border: none; background: rgba(76,54,29,.09); color: #554b3c; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; font-size: 14px; }
+  .topic-target { white-space: nowrap; text-overflow: ellipsis; overflow: hidden; margin: 10px 0 14px; font-size: 12px; opacity: .72; }
+  #topicPanel label { display: block; margin-bottom: 8px; color: #68553d; }
+  #topicInput { width: 100%; min-height: 44px; border: 1px solid #c8b593; background: #fcf9f1;
+    color: #312a24; border-radius: 4px; padding: 9px 11px; font: 16px/1.4 "Vazirmatn", var(--sans); outline-offset: 2px; }
+  #topicChoices { display: flex; flex-wrap: wrap; gap: 7px; max-height: 108px; margin: 12px 0; overflow-y: auto; }
+  #topicChoices button { background: #f8f1e2; border: 1px solid #cdbb96; border-radius: 4px; padding: 6px 10px;
+    min-height: 34px; font: 12px "Vazirmatn", var(--sans); color: #56412f; cursor: pointer; }
+  #topicChoices button:hover, #topicChoices button:focus-visible { background: #efe1c7; border-color: #8c4a3a; }
+  .topic-actions { display: flex; gap: 8px; justify-content: space-between; }
+  .topic-actions button { min-height: 44px; border: 1px solid #c7b18b; cursor: pointer; border-radius: 4px;
+    padding: 9px 13px; background: #f8f0e0; color: #4e402e; font: 12px/1.3 "Vazirmatn", var(--sans); }
+  #topicSave { background: #8c4a3a; color: #fff; border-color: #8c4a3a; font-weight: 700; }
+  .topic-filter-row { display: flex; align-items: center; gap: 8px; max-width: 100%; }
+  .topic-filter-row label { color: #715d3b; white-space: nowrap; font: 11px/1.4 "Vazirmatn", var(--sans); }
+  #topicFilter { min-width: 110px; max-width: min(250px, 100%); min-height: 35px; border: 1px solid #cdb88e;
+    border-radius: 4px; background: #fbf6e9; color: #3b3024; padding: 5px 9px; font: 12px "Vazirmatn", var(--sans); }
+  #drawer .leaf .topic-label { position: absolute; z-index: 2; top: 11%; inset-inline-start: 8%;
+    max-width: 76%; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;
+    color: #8c4a3a; font: 10px/1.5 "Vazirmatn", var(--sans); opacity: .92; }
+  #drawer .leaf .topic-label:empty { display: none; }
+  #drawer .leaf .acts button[data-act="topic"] { color: #8c4a3a; }
   /* a page flying out of the folder onto the typewriter */
   .leaf.fly { position: fixed; z-index: 60; margin: 0; transform-origin: 0 0; pointer-events: none; }
   #scrim { position: fixed; inset: 0; z-index: 15; display: none; cursor: default; }
-  body.panel #scrim, body.saving #scrim, body.mech #scrim { display: block; }
+  body.panel #scrim, body.saving #scrim, body.mech #scrim, body.topicing #scrim { display: block; }
+  body.topicing #scrim { background: rgba(18,15,12,.45); z-index: 28; }
   body.drawer #scrim { background: rgba(10,10,12,.16); animation: fadeIn .25s ease both; }
   body.panel #scrim, body.saving #scrim { background: rgba(10,10,12,.3); animation: fadeIn .25s ease both; }
   @keyframes fadeIn { from { opacity: 0; } }
@@ -542,6 +577,7 @@
     <button id="btnNew" title="New note (Alt+N)">+ new</button>
     <button id="btnInstall" title="Install Digital Ink as an app on this computer" hidden>install</button>
     <button id="btnSave" title="Save &amp; backup (Ctrl+S)"><span class="savedot"></span>save</button>
+    <button id="btnTopic" type="button" title="Choose or change topic / انتخاب موضوع" aria-haspopup="dialog">+ topic</button>
     <button id="btnUpdate" title="A new app version is available" hidden>update</button>
     <span id="title" dir="auto"></span>
   </div>
@@ -577,6 +613,10 @@
         <div id="tags"></div>
         <button class="sp-x" id="dClose" title="Back to the page (Esc)">✕</button>
       </div>
+      <div class="topic-filter-row">
+        <label for="topicFilter">موضوع / Topic</label>
+        <select id="topicFilter" aria-label="Filter notes by topic / فیلتر موضوع"></select>
+      </div>
       <div class="pocket-row">
         <span class="dr-sub"><span class="savedot"></span><span id="dCount">0 notes</span></span>
         <span class="pocket-hint"><span class="desktop-archive-hint">scroll to leaf through your pages · click or Enter to take one out</span><span class="mobile-archive-hint">Swipe left or right to turn real paper sheets · tap the middle sheet to type</span></span>
@@ -586,6 +626,23 @@
       <div class="file-label">PERSONAL NOTES<small>typed by Digital Ink</small></div>
     </div>
   </aside>
+
+  <section id="topicPanel" role="dialog" aria-modal="true" aria-labelledby="topicPanelTitle" aria-hidden="true">
+    <div class="topic-sheet">
+      <div class="topic-heading">
+        <span id="topicPanelTitle">موضوع یادداشت / Note topic</span>
+        <button id="topicClose" type="button" aria-label="Close topic editor">✕</button>
+      </div>
+      <p id="topicTargetTitle" class="topic-target" dir="auto"></p>
+      <label for="topicInput">Choose an existing topic or enter a new one</label>
+      <input id="topicInput" dir="auto" type="text" maxlength="64" autocomplete="off" placeholder="e.g. پروژه، کار، ایده…" aria-label="Topic name">
+      <div id="topicChoices" aria-label="Suggested and existing topics"></div>
+      <div class="topic-actions">
+        <button id="topicClear" type="button">بدون موضوع / Clear</button>
+        <button id="topicSave" type="button">ذخیره موضوع / Save</button>
+      </div>
+    </div>
+  </section>
 
   <div id="panel" role="dialog" aria-label="Help">
     <div class="dr-tab"><span class="dr-label">HELP</span></div>
