@@ -8,6 +8,31 @@
 
 ![Typing Machine with an English sample note](docs/screenshots/english.jpg)
 
+## Web app · screenshots and quick start
+
+The public, installable **Digital Ink web app** runs at **https://ialirezaaa.github.io/typing-machine/**. No login, subscription or cloud storage is required. It is a local-first writing desk that works in Persian (RTL) and English (LTR); your writing remains on this device.
+
+| English writing desk | Persian / RTL writing |
+|:--:|:--:|
+| [![Digital Ink English writing screenshot](docs/screenshots/english.jpg)](docs/screenshots/english.jpg) | [![Digital Ink Persian writing screenshot](docs/screenshots/persian.jpg)](docs/screenshots/persian.jpg) |
+| Live application screenshot | Live application screenshot |
+
+**Using the web app:**
+
+1. Open the [web app](https://ialirezaaa.github.io/typing-machine/). Tap the paper on a phone (or click the writing area on desktop) to start typing. On phones, tapping the paper returns to the **end of the note**, ready for input.
+2. Select **+ new** to start a page. Use **notes** to search, pin or open earlier pages; everything saves automatically on the current device.
+3. **Phone:** swipe vertically on the paper to review older lines; tap once to jump back to the end and bring up the keyboard. The mobile help shows touch instructions, not desktop keyboard shortcuts.
+4. Select **save** to export text, Markdown, or the **JSON backup** of all notes. Import the JSON backup to move your notes to another browser or device.
+5. **Install offline:** on iPhone use Safari → Share → Add to Home Screen; on Android use Chrome → Install app / Add to Home screen. First open the installed app online until **offline ready** appears, then you can open it without internet while local storage remains intact.
+
+**Privacy:** Notes use browser localStorage; there is no server synchronization. Different devices, browsers and installed app profiles do not share notes automatically. Always keep JSON backups.
+
+## Windows installer (offline desktop app)
+
+Download **Digital Ink Setup for Windows x64** from [GitHub Releases](https://github.com/iAlirezaaa/typing-machine/releases/latest). Run the `DigitalInk-Setup-1.2.0-x64.exe` installer; it creates a Start Menu shortcut and offers to **Launch Digital Ink now** when setup finishes. Desktop shortcut and **Start with Windows** are optional (auto-start at login is **off by default**).
+
+The installer bundles the local Python runtime (you do **not** install Python). It opens its own app-style Microsoft Edge/Chrome window and serves all files strictly from `127.0.0.1`. Writing is kept locally in a dedicated browser profile under `%LOCALAPPDATA%\DigitalInk\BrowserProfile`; uninstalling does not intentionally remove notes. An existing Edge or Chrome installation is required. Installer is not code-signed; Windows SmartScreen may warn. Update through GitHub Releases.
+
 ## Features
 
 - Persian and English writing with automatic text direction and joined Persian letters.
