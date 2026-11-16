@@ -152,21 +152,27 @@ test("mobile archive, saving, downloads, and offline reload", { timeout: 125000 
     }));
     assert.equal(caret.start, caret.end, "Tap on the paper should jump to the final line");
     assert.equal(caret.focused, true, "Tap should focus the keyboard input");
-    // Recorded key samples are part of the local PWA, not network streams.
-    const recordedAudio = page.waitForResponse(r =>
-      r.url().endsWith("/sounds/key-1.wav") && r.status() === 200, { timeout: 15000 });
+    // Real recorded audio must decode and be present in the offline shell,
+    // independent of whether a service worker serves it from cache (where
+    // page.waitForResponse is not a reliable test on every browser).
     await page.keyboard.type("x", { delay: 60 });
-    await recordedAudio;
-    const clipDuration = await page.evaluate(async () => {
-      const response = await fetch("sounds/key-1.wav");
-      const bytes = await response.arrayBuffer();
-      const audio = new (window.AudioContext || window.webkitAudioContext)();
-      const buffer = await audio.decodeAudioData(bytes);
-      await audio.close();
-      return buffer.duration;
+    const decodedClips = await page.evaluate(async () => {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      try {
+        const names = ["key-1.wav", "key-2.wav", "key-3.wav", "carriage-return.wav", "paper-select.wav"];
+        return await Promise.all(names.map(async name => {
+          const r = await fetch("sounds/" + name);
+          if (!r.ok) throw new Error("Missing offline typewriter sound: " + name);
+          const buffer = await ctx.decodeAudioData(await r.arrayBuffer());
+          return { name, duration: buffer.duration };
+        }));
+      } finally {
+        await ctx.close();
+      }
     });
-    assert.ok(clipDuration > 0.02, "Real typewriter recording must decode correctly in the browser");
-
+    assert.equal(decodedClips.length, 5);
+    for (const clip of decodedClips)
+      assert.ok(clip.duration > 0.02, "Sound does not decode: " + clip.name);
     const cursor = await page.locator("#caret").evaluate(el =>
       getComputedStyle(el, "::before").display);
     assert.equal(cursor, "block", "A dark typing caret must be visible on mobile");
