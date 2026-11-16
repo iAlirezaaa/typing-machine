@@ -4,11 +4,16 @@
  * Notes are never stored here: they remain in the browser's localStorage.
  */
 const CACHE_PREFIX = "typing-machine-";
-const CACHE = "typing-machine-v7";
+const CACHE = "typing-machine-v8";
 const ASSETS = [
   "./", "./index.html", "./offline-pwa.js", "./mobile.css",
-  "./offline-pwa.js?v=1.2.2", "./mobile.css?v=1.2.2", "./manifest.webmanifest",
+  "./offline-pwa.js?v=1.3.0", "./mobile.css?v=1.3.0",
+  "./manifest.webmanifest", "./manifest.webmanifest?v=1.3.0",
   "./icons/icon.svg", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png",
+  "./icons/icon.svg?v=1.3.0", "./icons/icon-192.png?v=1.3.0",
+  "./icons/icon-512.png?v=1.3.0", "./icons/icon-maskable-512.png?v=1.3.0",
+  "./sounds/key-1.wav", "./sounds/key-2.wav", "./sounds/key-3.wav",
+  "./sounds/carriage-return.wav", "./sounds/paper-select.wav",
   "./fonts/fonts.css",
   "./fonts/CourierPrime-italic-400-latin-ext.woff2", "./fonts/CourierPrime-italic-400-latin.woff2",
   "./fonts/CourierPrime-italic-700-latin-ext.woff2", "./fonts/CourierPrime-italic-700-latin.woff2",
