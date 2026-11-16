@@ -4,12 +4,18 @@ import { readFileSync } from "node:fs";
 
 const read = name => readFileSync(new URL("../" + name, import.meta.url), "utf8");
 
-test("Mobile archive and save dialogs have separate scrollable layouts", () => {
+test("Mobile archive is swipeable paper while save dialogs remain scrollable", () => {
   const css = read("mobile.css");
   for (const selector of ["#drawer #shelf", "#savePanel, #panel", "#drawer .leaf .acts"]) {
     assert.ok(css.includes(selector), selector);
   }
   assert.match(css, /overflow-y: auto/);
+  assert.match(css, /scroll-snap-type: x mandatory/);
+  assert.match(css, /touch-action: pan-x/);
+  assert.match(css, /--leafH: min\(53dvh, 470px\)/);
+  assert.match(css, /body\.mobile-editing #caret::before/);
+  assert.match(css, /body\.mobile-keyboard #hudR/);
+  assert.doesNotMatch(css, /flex-direction: column; gap: 9px;/);
 });
 test("Digital Ink branding preserves old note storage", () => {
   const html = read("index.html");
@@ -34,4 +40,16 @@ test("Service worker doesn't force activation while writing", () => {
   assert.ok(worker.includes("event.waitUntil(self.skipWaiting())"));
   assert.ok(!worker.includes("await self.skipWaiting();"));
   assert.ok(worker.includes('"./mobile.css"'));
+});
+
+
+test("Mobile typing line follows the visible iOS viewport", () => {
+  const html = read("index.html");
+  assert.match(html, /window\.visualViewport\.addEventListener\("resize"/);
+  assert.match(html, /window\.visualViewport\.addEventListener\("scroll"/);
+  assert.match(html, /const safeBottom = vTop \+ vHeight -/);
+  assert.match(html, /classList\.add\("mobile-editing"\)/);
+  assert.match(html, /const left = el\.offsetLeft \+ el\.offsetWidth \/ 2 - shelf\.clientWidth \/ 2/);
+  assert.match(html, /mobile-archive-hint/);
+  assert.match(html, /Tap the paper to return to the last line/);
 });

@@ -4,7 +4,7 @@ Digital Ink is a static, local-first Progressive Web App. The repository retains
 
 ## Mobile behavior
 
-- Phone screens show a vertical, scrollable Notes archive rather than desktop coverflow. Tap any page once to open it; pin/delete actions stay visible.
+- Phone screens show a horizontal, inertial, scroll-snapping coverflow of overlapping full-size typed sheets, like the desktop paper folder. Swipe to select a sheet, then tap the centered sheet to open it. Pin/delete actions remain available on the selected sheet.
 - Save & Backup is a vertically scrollable dialog that respects safe-area insets and small viewports.
 - On mobile browsers supporting the Web Share API, exporting notes and JSON backups opens the share sheet, including the option to save to Files. Other browsers use a standard download link.
 - Automatic saving happens during typing and when the app is backgrounded. Use JSON backup regularly; clearing browser storage may still destroy notes.
@@ -62,7 +62,7 @@ Manual Windows verification on a clean Windows 10/11 x64 VM: install, auto-launc
 
 ## Mobile gestures and contextual help
 
-Phone/tablet touch interfaces hide the desktop keyboard shortcut table. Drag the **paper** vertically to read old text; a short tap on the writing surface moves the caret to the last character and requests the mobile keyboard. Desktop text selection stays unchanged. Interactive dialogs, the archive, and button taps are excluded from paper-swipe interception. A Playwright Chromium test covers gesture handling and mobile contextual help, but real-device Safari and Chrome tests remain necessary.
+Phone/tablet touch interfaces hide the desktop keyboard shortcut table. Drag the **writing paper** vertically to read old text; a short tap moves the caret to the last character and requests the mobile keyboard. The typewriter's baseline is calculated from `window.visualViewport` so the dark caret and metal typing guide stay visible above iOS Safari's software keyboard (even when `innerHeight` stays unchanged). The Notes folder uses a distinct horizontal swipe gesture; desktop text selection and original paper animations remain unchanged. Interactive dialogs, the archive, and button taps are excluded from paper-swipe interception. A Playwright Chromium test covers gesture handling and mobile contextual help, but real-device Safari and Chrome tests remain necessary.
 
 ## Testing limits
 

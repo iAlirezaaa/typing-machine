@@ -20,8 +20,8 @@ The public, installable **Digital Ink web app** runs at **https://ialirezaaa.git
 **Using the web app:**
 
 1. Open the [web app](https://ialirezaaa.github.io/typing-machine/). Tap the paper on a phone (or click the writing area on desktop) to start typing. On phones, tapping the paper returns to the **end of the note**, ready for input.
-2. Select **+ new** to start a page. Use **notes** to search, pin or open earlier pages; everything saves automatically on the current device.
-3. **Phone:** swipe vertically on the paper to review older lines; tap once to jump back to the end and bring up the keyboard. The mobile help shows touch instructions, not desktop keyboard shortcuts.
+2. Select **+ new** to start a page. Use **notes** to open the paper folder: saved notes appear as **overlapping full-size typed sheets**, not text cards. Swipe sideways to turn the sheets, and tap the centered sheet to put it back on the typewriter. Search and pin pages in the folder. Everything saves automatically on this device.
+3. **Phone writing:** swipe vertically across the paper to read older lines; tap once to bring the dark typing caret and the mechanical typing line back above the on-screen keyboard. The mobile help shows touch instructions rather than desktop keyboard shortcuts.
 4. Select **save** to export text, Markdown, or the **JSON backup** of all notes. Import the JSON backup to move your notes to another browser or device.
 5. **Install offline:** on iPhone use Safari → Share → Add to Home Screen; on Android use Chrome → Install app / Add to Home screen. First open the installed app online until **offline ready** appears, then you can open it without internet while local storage remains intact.
 
@@ -29,7 +29,7 @@ The public, installable **Digital Ink web app** runs at **https://ialirezaaa.git
 
 ## Windows installer (offline desktop app)
 
-Download **Digital Ink Setup for Windows x64** from [GitHub Releases](https://github.com/iAlirezaaa/typing-machine/releases/latest). Run the `DigitalInk-Setup-1.2.0-x64.exe` installer; it creates a Start Menu shortcut and offers to **Launch Digital Ink now** when setup finishes. Desktop shortcut and **Start with Windows** are optional (auto-start at login is **off by default**).
+Download **Digital Ink Setup for Windows x64** from [GitHub Releases](https://github.com/iAlirezaaa/typing-machine/releases/latest). Run the `DigitalInk-Setup-1.2.1-x64.exe` installer; it creates a Start Menu shortcut and offers to **Launch Digital Ink now** when setup finishes. Desktop shortcut and **Start with Windows** are optional (auto-start at login is **off by default**).
 
 The installer bundles the local Python runtime (you do **not** install Python). It opens its own app-style Microsoft Edge/Chrome window and serves all files strictly from `127.0.0.1`. Writing is kept locally in a dedicated browser profile under `%LOCALAPPDATA%\DigitalInk\BrowserProfile`; uninstalling does not intentionally remove notes. An existing Edge or Chrome installation is required. Installer is not code-signed; Windows SmartScreen may warn. Update through GitHub Releases.
 
@@ -68,7 +68,7 @@ Notes are saved in the device's browser storage, **not uploaded** to GitHub or a
 
 ## Digital Ink on phones
 
-The home-screen app now has a mobile-first notes archive and a scrollable **Save & backup** panel. On iPhone, exports can use the iOS **Share / Save to Files** sheet; supported browsers use the normal download option otherwise. The original note storage keys are preserved across the rename from Lamplight.
+The home-screen app now has a tactile, horizontally swipeable paper-folder archive, a keyboard-aware visible typing line on iOS, and a scrollable **Save & backup** panel. On iPhone, exports can use the iOS **Share / Save to Files** sheet; supported browsers use the normal download option otherwise. The original note storage keys are preserved across the rename from Lamplight.
 
 When a newer release is marked **final**, open **Help → Check for updates**. Once all files are ready, select **Install ready update** or the top-left **update** button. Updates never deliberately interrupt typing.
 

@@ -55,16 +55,42 @@ test("mobile archive, saving, downloads, and offline reload", { timeout: 125000 
         mobileCss: [...document.styleSheets].some(x => x.href?.endsWith("/mobile.css")),
         covering: cover?.id || cover?.tagName, rects };
     })));
-    // Accessible, one-tap archive cards instead of miniature overlapping sheets.
+    // Saved notes are printed pages on a horizontally swipeable folder shelf,
+    // not a vertical text list.
     await page.locator("#btnNotes").click();
     await page.waitForSelector("body.drawer");
     assert.equal(await page.locator("#shelf .leaf").count(), 2);
     const layout = await page.locator("#shelf").evaluate(el => ({
-      scrollable: getComputedStyle(el).overflowY,
-      direction: getComputedStyle(el).flexDirection
+      overflowX: getComputedStyle(el).overflowX,
+      overflowY: getComputedStyle(el).overflowY,
+      direction: getComputedStyle(el).flexDirection,
+      touchAction: getComputedStyle(el).touchAction,
+      paperHeight: el.querySelector(".leaf")?.getBoundingClientRect().height,
+      scrollWidth: el.scrollWidth,
+      clientWidth: el.clientWidth
     }));
-    assert.equal(layout.scrollable, "auto");
-    assert.equal(layout.direction, "column");
+    assert.equal(layout.overflowX, "auto");
+    assert.equal(layout.overflowY, "hidden");
+    assert.equal(layout.direction, "row");
+    assert.equal(layout.touchAction, "pan-x");
+    assert.ok(layout.paperHeight > 250, "Saved notes should look like full-size paper");
+    assert.ok(layout.scrollWidth > layout.clientWidth, "Adjacent pages must be swipeable");
+
+    // A hand swipe moves the paper shelf (not the page underneath).
+    const cdp = await context.newCDPSession(page);
+    const beforeSwipe = await page.locator("#shelf").evaluate(el => el.scrollLeft);
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 95, y: 240 }] });
+    for (const x of [140, 195, 250, 315]) {
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x, y: 240 }] });
+    }
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    await page.waitForTimeout(300);
+    const afterSwipe = await page.locator("#shelf").evaluate(el => el.scrollLeft);
+    assert.notEqual(beforeSwipe, afterSwipe, "Finger swipe should change the selected paper");
+
+    // First bring the selected paper to the center, then tap to open it.
+    await page.locator("#shelf").evaluate(el => el.scrollTo({ left: 0, behavior: "instant" }));
+    await page.waitForTimeout(180);
     await page.locator('#shelf .leaf[data-id="mobile-two"] .pg').click();
     await page.waitForFunction(() => !document.body.classList.contains("drawer"));
 
@@ -78,7 +104,6 @@ test("mobile archive, saving, downloads, and offline reload", { timeout: 125000 
       input.dispatchEvent(new Event("input", { bubbles: true }));
     }, longNote);
     const sheetBefore = await page.locator("#sheet").evaluate(el => el.style.transform);
-    const cdp = await context.newCDPSession(page);
     await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 200, y: 270 }] });
     for (const y of [310, 360, 410, 470]) {
       await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 200, y }] });
@@ -94,6 +119,24 @@ test("mobile archive, saving, downloads, and offline reload", { timeout: 125000 
     }));
     assert.equal(caret.start, caret.end, "Tap on the paper should jump to the final line");
     assert.equal(caret.focused, true, "Tap should focus the keyboard input");
+    const cursor = await page.locator("#caret").evaluate(el =>
+      getComputedStyle(el, "::before").display);
+    assert.equal(cursor, "block", "A dark typing caret must be visible on mobile");
+    // Emulate the reduced visible area with the software keyboard open.
+    await page.setViewportSize({ width: 390, height: 480 });
+    await page.waitForTimeout(120);
+    const writingLine = await page.evaluate(() => ({
+      baseline: parseFloat(getComputedStyle(document.documentElement)
+        .getPropertyValue("--typing-baseline")),
+      visualBottom: visualViewport.offsetTop + visualViewport.height,
+      machineTop: document.getElementById("machine").getBoundingClientRect().top
+    }));
+    assert.ok(writingLine.baseline < writingLine.visualBottom - 65,
+      "The typing line must remain above the keyboard: " + JSON.stringify(writingLine));
+    assert.ok(writingLine.machineTop < writingLine.visualBottom - 42,
+      "The machine must not disappear behind the keyboard");
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForTimeout(120);
 
     // A backup must stay usable at phone height and contain all original notes.
     await page.locator("#btnSave").click();

@@ -118,7 +118,7 @@ test("pre-caches every file and opens the installed app in airplane mode", async
 test("reports incomplete cache, then repairs missing offline assets when online", async () => {
   const worker = createWorker();
   await worker.install();
-  const cache = await worker.caches.open("typing-machine-v5");
+  const cache = await worker.caches.open("typing-machine-v6");
   await cache.delete(ROOT + "fonts/fonts.css");
   worker.setOnline(false);
   const missing = await worker.check();
@@ -148,7 +148,7 @@ test("only purges this app's old caches", async () => {
   await worker.caches.open("typing-machine-v2");
   await worker.install();
   await worker.activate();
-  assert.deepEqual(await worker.caches.keys(), ["other-app-v1", "typing-machine-v5"]);
+  assert.deepEqual(await worker.caches.keys(), ["other-app-v1", "typing-machine-v6"]);
 });
 
 test("does not intercept backend migration, external scope, or non-GET requests", async () => {

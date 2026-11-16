@@ -1,8 +1,8 @@
 {
   "name": "Digital Ink",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "status": "final",
   "released_at": "2026-11-16",
-  "notes": "Windows offline installer, touch paper scrolling, tap-to-write, and mobile help improvements.",
+  "notes": "iPhone keyboard-aware typing guide, visible ink caret and swipeable layered-paper archive.",
   "requires_online_to_update": true
 }
