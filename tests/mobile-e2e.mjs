@@ -60,6 +60,10 @@ test("mobile archive, saving, downloads, and offline reload", { timeout: 125000 
     // not a vertical text list.
     await page.locator("#btnNotes").click();
     await page.waitForSelector("body.drawer");
+    await page.waitForFunction(() => {
+      const pocket = document.querySelector("#drawer .pocket").getBoundingClientRect();
+      return Math.abs(pocket.bottom - innerHeight) < 3;
+    }, null, { timeout: 5000 }); // wait until the folder's physical entrance settles
     assert.equal(await page.locator("#shelf .leaf").count(), 2);
     const layout = await page.locator("#shelf").evaluate(el => ({
       overflowX: getComputedStyle(el).overflowX,
@@ -217,6 +221,10 @@ test("mobile archive, saving, downloads, and offline reload", { timeout: 125000 
     await page.reload({ waitUntil: "domcontentloaded" });
     await page.locator("#btnNotes").click();
     await page.waitForSelector("body.drawer");
+    await page.waitForFunction(() => {
+      const pocket = document.querySelector("#drawer .pocket").getBoundingClientRect();
+      return Math.abs(pocket.bottom - innerHeight) < 3;
+    }, null, { timeout: 5000 }); // wait until the folder's physical entrance settles
     assert.equal(await page.locator("#shelf .leaf").count(), 1,
       "Exactly one note must remain; the surrounding pages are decorative");
     const oneSheet = await page.locator("#shelf .leaf").boundingBox();
