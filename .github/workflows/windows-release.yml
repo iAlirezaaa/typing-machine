@@ -52,6 +52,11 @@ jobs:
           '@ | python -
           $icon = (Resolve-Path 'windows/icon.ico').Path
           python -m PyInstaller --noconfirm --clean --onedir --windowed --name DigitalInk --icon $icon --paths . --distpath build --workpath .pyinstaller-work --specpath .pyinstaller-work windows/desktop.py
+      - name: Stage offline web files in installed layout for executable self-test
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path "build/web" -Force | Out-Null
+          Copy-Item -Path "dist/*" -Destination "build/web" -Recurse -Force
       - name: Executable smoke test (no browser or Python required on end-user computer)
         shell: pwsh
         run: |
