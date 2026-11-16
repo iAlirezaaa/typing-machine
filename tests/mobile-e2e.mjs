@@ -23,11 +23,10 @@ test("mobile archive, saving, downloads, and offline reload", { timeout: 125000 
       viewport: { width: 390, height: 844 }, deviceScaleFactor: 2,
       isMobile: true, hasTouch: true, acceptDownloads: true
     });
-    const page = await context.newPage();
-    const errors = [];
-    page.on("pageerror", e => errors.push(e.message));
-    await page.goto(BASE, { waitUntil: "domcontentloaded" });
-    await page.evaluate(() => {
+    // Seed before the app boots. Reloading after injection would trigger the
+    // editor's beforeunload persistence and overwrite this test fixture.
+    await context.addInitScript(() => {
+      if (sessionStorage.getItem("digitalink-smoke-seeded")) return;
       const ts = Date.now();
       const notes = [
         { id: "mobile-one", text: "# First note\nEnglish words", created: ts - 12000, updated: ts - 12000, pinned: false, caret: 0 },
@@ -35,8 +34,12 @@ test("mobile archive, saving, downloads, and offline reload", { timeout: 125000 
       ];
       localStorage.setItem("lamplight.notes.v1", JSON.stringify(notes));
       localStorage.setItem("lamplight.settings.v1", JSON.stringify({ current: "mobile-one" }));
+      sessionStorage.setItem("digitalink-smoke-seeded", "yes");
     });
-    await page.reload({ waitUntil: "domcontentloaded" });
+    const page = await context.newPage();
+    const errors = [];
+    page.on("pageerror", e => errors.push(e.message));
+    await page.goto(BASE, { waitUntil: "domcontentloaded" });
     await page.waitForSelector("#btnNotes");
 
     console.log("MOBILE UI LAYOUT", JSON.stringify(await page.evaluate(() => {
