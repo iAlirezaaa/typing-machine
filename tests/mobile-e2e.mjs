@@ -70,7 +70,7 @@ test("mobile archive, saving, downloads, and offline reload", { timeout: 125000 
 
     // Touch paper: swiping reads older lines; a tap returns to the final line
     // and focuses the hidden textarea (the mobile keyboard input).
-    const longNote = Array.from({ length: 42 }, (_, i) => "Test line " + (i + 1)).join("\\n");
+    const longNote = Array.from({ length: 42 }, (_, i) => "Test line " + (i + 1)).join("\n");
     await page.evaluate(text => {
       const input = document.getElementById("input");
       input.value = text;
