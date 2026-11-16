@@ -2,8 +2,8 @@
 #findbar { pointer-events: none; }
 body.finding #findbar { pointer-events: auto; }
 
-/* Digital Ink mobile layout: keep the desktop paper machine unchanged.
-   On touch screens the archive becomes a readable vertical stack of pages. */
+/* Digital Ink mobile layout: preserve the desktop paper-folder metaphor,
+   while making touch gestures, overlays and software keyboards usable. */
 @media (max-width: 680px) {
   html, body { width: 100%; max-width: 100%; overscroll-behavior: none; }
   #input {
@@ -59,88 +59,188 @@ body.finding #findbar { pointer-events: auto; }
   #mechPanel { max-height: calc(100dvh - 40px); overflow: auto; overscroll-behavior: contain; }
   #mechPanel .mech-sheet { max-height: 58dvh; }
 
-  /* A real paper folder instead of flat note-list cards.
-     The middle sheet reads like the Windows version; the other sheets peek
-     out on either side and slide under the finger (native momentum + snap). */
+  /* Mobile folder: exactly the same page-and-pocket metaphor as desktop.
+     The sheet's bottom edge physically enters the manila folder; none of
+     the desktop's full-height empty gap survives at phone dimensions. */
   #drawer {
-    --leafH: min(53dvh, 470px);
-    --leafW: min(75vw, calc(var(--leafH) * .74));
-    background: radial-gradient(110% 75% at 50% 15%, #fbf8ef 4%, #ede3cf 72%, #e6d6b8 100%);
+    --pocketH: clamp(208px, 31dvh, 286px);
+    --folderEdge: calc(100dvh - var(--pocketH));
+    --leafH: clamp(290px, calc(100dvh - var(--pocketH) - 95px), 480px);
+    --leafW: min(76vw, calc(var(--leafH) * .70));
+    background: radial-gradient(120% 94% at 50% 10%, #faf7ef, #eee5d5 69%, #e6d7b7);
   }
   #drawer .folder-back {
-    display: block; left: 12px; width: calc(100% - 24px); top: 20dvh;
-    bottom: 0; transform: none; border-radius: 16px 16px 0 0;
-    background: linear-gradient(90deg, #dfca99, #efdeb9 28%, #e9d6ad 80%, #d8c18e);
-    box-shadow: inset 0 0 0 1px rgba(117,86,48,.15), 0 12px 32px rgba(91,64,34,.14);
+    display: block;
+    position: absolute;
+    left: 12px; width: calc(100% - 24px);
+    top: calc(var(--folderEdge) - 78px);
+    bottom: -10px;
+    transform: none;
+    border-radius: 14px 14px 0 0;
+    background: linear-gradient(90deg, #d8c393 0%, #e9d7b2 15%, #edddbc 52%, #d9c392 100%);
+    box-shadow: 0 0 0 1px #c7af7e, inset 0 9px 20px -15px rgba(65,46,25,.35),
+      0 8px 22px rgba(71,49,26,.15);
+  }
+  /* Paper edges behind the active sheet make even a single saved page
+     feel filed, rather than like a flat, full-width note card. */
+  #drawer .folder-back::before, #drawer .folder-back::after {
+    content: "";
+    position: absolute;
+    top: calc(114px - var(--leafH));
+    left: 50%;
+    width: var(--leafW);
+    height: var(--leafH);
+    background: #f3ede0;
+    border: 1px solid rgba(108,83,50,.18);
+    border-radius: 2px;
+    box-shadow: 0 8px 20px rgba(86,57,27,.13);
+    pointer-events: none;
+  }
+  #drawer .folder-back::before { transform: translateX(calc(-50% - 17px)) rotate(-3deg); }
+  #drawer .folder-back::after {
+    transform: translateX(calc(-50% + 17px)) rotate(3deg);
+    background: #f9f5eb;
   }
   #drawer #shelf {
-    position: absolute; top: calc(13px + env(safe-area-inset-top, 0px)); bottom: auto;
-    left: 0; width: 100%; height: calc(var(--leafH) + 78px); margin: 0;
-    display: flex; flex-direction: row; align-items: flex-start; gap: 0;
-    padding: 24px calc((100vw - var(--leafW)) / 2) 35px;
-    overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory;
+    position: absolute;
+    top: max(calc(48px + env(safe-area-inset-top, 0px)),
+      calc(var(--folderEdge) - var(--leafH) + 40px));
+    left: 0; bottom: auto;
+    width: 100%; height: calc(var(--leafH) + 60px);
+    margin: 0;
+    padding: 19px calc((100vw - var(--leafW)) / 2) 35px;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior: contain;
+    scroll-snap-type: x mandatory;
     scroll-padding-inline: calc((100vw - var(--leafW)) / 2);
-    perspective: 950px; touch-action: pan-x;
-    -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;
-    -webkit-mask-image: none; mask-image: none;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+    scrollbar-width: none;
+    perspective: 1000px;
+    -webkit-mask-image: none;
+    mask-image: none;
+    z-index: 1;
   }
+  #drawer #shelf::-webkit-scrollbar { display: none; }
   #drawer .leaf {
-    flex: 0 0 var(--leafW); width: var(--leafW); height: var(--leafH);
-    margin: 0 calc(var(--leafW) * -.19) 0 0;
-    transform-origin: 50% 78%; border-radius: 1px;
-    opacity: 1 !important; scroll-snap-align: center; overflow: visible;
-    background: #fcf9f1;
-    box-shadow: 0 1px 1px rgba(80,56,20,.17), 0 8px 24px rgba(80,56,20,.20),
-      0 0 0 1px rgba(87,64,39,.11);
-    transition: transform .15s ease-out, box-shadow .2s ease-out;
+    flex: 0 0 var(--leafW);
+    width: var(--leafW);
+    height: var(--leafH);
+    margin: 0 calc(var(--leafW) * -.18) 0 0;
+    opacity: 1 !important;
+    transform-origin: 50% 85%;
+    border-radius: 2px;
+    background: linear-gradient(95deg, #f3eddf 0%, #fdfaf2 7%, #fcf9f1 92%, #f4eddd 100%);
+    box-shadow: 0 2px 3px rgba(70,47,25,.12),
+      0 14px 30px rgba(80,56,20,.21), 0 0 0 1px rgba(87,64,39,.13);
+    scroll-snap-align: center;
+    transition: transform .16s ease-out, box-shadow .16s ease-out;
   }
   #drawer .leaf:last-child { margin-right: 0; }
   #drawer .leaf.center {
-    box-shadow: 0 2px 4px rgba(80,56,20,.14), 0 23px 39px rgba(80,56,20,.27),
-      0 0 0 1px rgba(87,64,39,.12);
+    box-shadow: 0 3px 4px rgba(80,56,20,.13), 0 20px 42px rgba(80,56,20,.28),
+      0 0 0 1px rgba(87,64,39,.18);
   }
-  #drawer .leaf.cur .pg { background: linear-gradient(90deg, transparent 6%, rgba(140,74,58,.45) 6%, rgba(140,74,58,.45) calc(6% + 1px), transparent calc(6% + 1px)); }
+  #drawer .leaf.cur .pg {
+    background: linear-gradient(90deg, transparent 5%, rgba(140,74,58,.35) 5%,
+      rgba(140,74,58,.35) calc(5% + 1px), transparent calc(5% + 1px));
+  }
   #drawer .leaf .pg {
-    inset: 0; padding: 51px 24px 57px;
-    font: clamp(12px, 3.25vw, 15px)/1.85 var(--type); color: #302923;
-    -webkit-mask-image: linear-gradient(#000 78%, transparent 98%);
-    mask-image: linear-gradient(#000 78%, transparent 98%);
-    white-space: pre-wrap; overflow-wrap: anywhere;
+    inset: 0;
+    padding: 53px 20px 122px;
+    font: clamp(12px, 3.2vw, 15px)/1.75 var(--type);
+    color: #312b26;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(#000 72%, transparent 94%);
+    mask-image: linear-gradient(#000 72%, transparent 94%);
   }
   #drawer .leaf .stampd {
-    direction: ltr; top: 19px; right: 21px;
-    font: 10px/1.3 var(--type); letter-spacing: .02em;
+    top: 22px; right: 19px;
+    direction: ltr;
+    font: 10px/1.2 var(--type);
+    letter-spacing: .03em;
   }
-  #drawer .leaf .clip2 { display: block; top: -8px; width: 12px; height: 34px; }
+  #drawer .leaf .clip2 { display: block; top: -11px; height: 34px; width: 12px; }
   #drawer .leaf .acts, #drawer .leaf.center .acts {
-    left: 13px; right: 13px; top: auto; bottom: 11px; gap: 6px;
-    opacity: 0; pointer-events: none;
+    top: auto;
+    left: 12px;
+    right: 12px;
+    bottom: 67px;
+    justify-content: flex-end;
+    gap: 7px;
+    opacity: 0;
+    pointer-events: none;
   }
-  #drawer .leaf.center .acts { opacity: 1; pointer-events: auto; }
-  #drawer .leaf .acts button { min-height: 39px; min-width: 53px; padding: 6px 10px; }
-  #drawer .shelf-empty { margin: auto; padding: 26px; text-align: center; white-space: normal; }
+  #drawer .leaf.center .acts {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  #drawer .leaf .acts button {
+    min-height: 42px; min-width: 54px;
+    font-size: 12px; padding: 6px 10px;
+    border-radius: 3px;
+    background: rgba(254,251,244,.92);
+  }
+  #drawer .shelf-empty {
+    margin: auto;
+    padding: 20px;
+    text-align: center;
+    white-space: normal;
+  }
   #drawer .pocket {
-    position: absolute; left: 0; width: 100%; top: auto; bottom: 0;
-    height: min(33dvh, 330px); min-height: 220px; max-height: none;
-    transform: translateY(110%); border-radius: 17px 17px 0 0;
-    padding: 21px 13px calc(12px + env(safe-area-inset-bottom, 0px));
-    overflow-y: auto; overscroll-behavior-y: contain;
-    -webkit-overflow-scrolling: touch; gap: 9px;
-    box-shadow: 0 -5px 14px rgba(97,75,46,.14), inset 0 2px 0 rgba(255,255,255,.48);
+    position: absolute;
+    top: auto;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: var(--pocketH);
+    max-height: none;
+    min-height: 0;
+    padding: 16px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+    border-radius: 18px 18px 0 0;
+    transform: translateY(110%);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: linear-gradient(150deg, #eedfbb 0%, #e8d6ad 72%, #d9c394 100%);
+    box-shadow: 0 -5px 15px rgba(80,56,20,.14), inset 0 2px 0 rgba(255,255,255,.55),
+      0 0 0 1px var(--manila-edge);
+    z-index: 4;
   }
   body.drawer #drawer .pocket { transform: translateY(0); }
-  #drawer .pocket::before { width: 78px; height: 12px; }
+  #drawer .pocket::before { width: 72px; height: 11px; }
   #drawer .file-label { display: none; }
-  #drawer .pocket-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; }
-  #drawer .dr-search { flex: none; min-width: 0; grid-column: 1; grid-row: 1; }
-  #drawer #search { font-size: 16px; min-height: 44px; }
-  #drawer #dClose { grid-column: 2; grid-row: 1; min-width: 44px; min-height: 44px; }
-  #drawer #tags { grid-column: 1 / -1; grid-row: 2; max-height: 11dvh; overflow-y: auto; }
-  #drawer .dr-sub { grid-column: 1 / -1; white-space: normal; }
-  #drawer #dNew, #drawer #dSave { min-height: 44px; }
+  #drawer .pocket-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 7px;
+    align-items: center;
+  }
+  #drawer .dr-search { min-width: 0; grid-column: 1; grid-row: 1; }
+  #drawer #search { font-size: 16px; min-height: 43px; }
+  #drawer #dClose { min-width: 44px; min-height: 44px; grid-column: 2; grid-row: 1; }
+  #drawer #tags { grid-column: 1 / -1; grid-row: 2; max-height: 55px; overflow-y: auto; }
+  #drawer .dr-sub { grid-column: 1 / -1; white-space: normal; font-size: 11.5px; }
+  #drawer #dNew, #drawer #dSave { min-height: 43px; }
+  #drawer #dNew { grid-column: 1; }
+  #drawer #dSave { grid-column: 2; }
   #drawer .pocket-hint {
-    grid-column: 1 / -1; display: block; text-align: center;
-    white-space: normal; overflow: visible; font-size: 11.5px; line-height: 1.5;
+    grid-column: 1 / -1;
+    font-size: 10.5px;
+    line-height: 1.3;
+    text-align: center;
+    white-space: normal;
+    overflow: visible;
   }
   #drawer .desktop-archive-hint { display: none; }
   #drawer .mobile-archive-hint { display: inline; }
@@ -165,7 +265,7 @@ body.finding #findbar { pointer-events: auto; }
 @media (max-width: 360px) {
   #savePanel, #panel { padding-inline: 9px; }
   #drawer .pocket { padding-inline: 8px; }
-  #drawer .leaf .pg { padding-inline: 20px; }
+  #drawer .leaf .pg { padding-inline: 16px; }
 }
 
 
