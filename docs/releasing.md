@@ -51,6 +51,14 @@ The committed `dist/` directory contains the original app icon plus bundled CC0 
 
 GitHub Actions verifies the checked-in distribution and publishes an artifact ZIP. The source and built app require no npm runtime dependencies, backend, account, cloud notes or paid hosting.
 
+## Optional note subjects (v1.3.1)
+
+Every note can be assigned an optional `topic` metadata string, including after it has already been written. The topic editor opens from the main writing toolbar or from any archived paper; selecting an existing topic or typing a new one updates the note without rewriting its `text`. Search in the paper folder includes subject names, and a dropdown filters on subject or uncategorized notes. Hashtags embedded in the text remain an independent filter.
+
+Use the unchanged `lamplight.notes.v1` localStorage collection so existing notes migrate without losing content. Older backups without `topic` still import, and changing a note in a newer JSON backup preserves its subject. The user's topic metadata is exported with the standard `digital-ink-backup.json`.
+
+The browser test creates two notes, assigns a subject while writing, changes it from an archived sheet, filters the collection and verifies the exact text remains unchanged. Desktop, phone and offline static bundles use the same implementation.
+
 ## Persian typewriter letterpress (v1.3.1)
 
 The paper uses a locally bundled **Parastoo** variable face (SIL OFL 1.1), converted to WOFF2 by `scripts/vendor-persian-font.py` with its upstream font/license Git object IDs verified before conversion. The CSS `fonts/typewriter-persian.css` restricts this face to Arabic-script Unicode and styles *connected words* with stable per-word baseline and density variation. It does **not** split or independently rotate Arabic letters. A very subtle per-line SVG alpha filter creates faded ribbon grain without disconnecting thin strokes.
