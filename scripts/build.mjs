@@ -62,7 +62,7 @@ if (process.argv.includes("--check")) {
     assert.ok(fs.readFileSync(path.join(root, rel)).equals(fs.readFileSync(path.join(dist, rel))),
       "Stale or modified dist/" + rel);
   }
-  assert.equal(fs.readFileSync(path.join(dist, "build-info.json"), "utf8"), buildInfo);
+  assert.equal(fs.readFileSync(path.join(dist, "build-info.json"), "utf8").replace(/\r\n/g, "\n"), buildInfo);
   console.log("Digital Ink " + release.version + ": dist/ matches finalized source (" + expected.size + " files).");
 } else {
   fs.rmSync(dist, { recursive: true, force: true });
