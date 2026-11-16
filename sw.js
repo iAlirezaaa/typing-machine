@@ -87,7 +87,8 @@ self.addEventListener("fetch", event => {
   if (request.mode === "navigate" || url.pathname.endsWith(".html")) {
     event.respondWith((async () => {
       try {
-        const response = await fetch(request);
+        const response = await fetch(request, { cache: "no-store" });
+        // Fetch HTML fresh online, bypassing HTTP caches which can retain old releases.
         // Do not overwrite this version's cached HTML with a future release:
         // the *new* service worker atomically pre-caches the new app shell.
         return response;
