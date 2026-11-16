@@ -1,0 +1,63 @@
+name: Vendor original icon and CC0 recorded sounds
+
+on:
+  push:
+    branches: [feat/digital-ink-icon-recorded-audio]
+    paths:
+      - '.github/workflows/vendor-typewriter-media.yml'
+      - 'scripts/vendor-media.py'
+      - 'icons/icon-art.webp.b64'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  vendor:
+    name: Verify/download CC0 audio and render original app icon
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install deterministic icon renderer
+        run: python -m pip install --disable-pip-version-check Pillow==11.3.0
+      - name: Download verified CC0 audio and generate PNG + SVG icons
+        run: python scripts/vendor-media.py
+      - name: Regenerate checked-in offline site and Windows web bundle
+        run: node scripts/build.mjs
+      - name: Verify media, PWA offline cache and reproducible dist
+        run: |
+          node --test tests/offline-sw.test.mjs tests/mobile-regression.test.mjs tests/media-regression.test.mjs
+          node scripts/build.mjs --check
+      - name: Upload created sounds and icons for inspection
+        uses: actions/upload-artifact@v4
+        with:
+          name: digital-ink-original-icon-and-cc0-audio
+          path: |
+            icons/icon-192.png
+            icons/icon-512.png
+            icons/icon-maskable-512.png
+            icons/icon.svg
+            sounds/*.wav
+          if-no-files-found: error
+      - name: Commit verified binary assets to the feature branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A icons/icon.svg icons/icon-192.png icons/icon-512.png icons/icon-maskable-512.png sounds dist
+          if git diff --cached --quiet; then
+            echo "Media assets already match verified source."
+            exit 0
+          fi
+          git commit -m "assets: ship original icon and verified CC0 typewriter audio in offline build"
+          git push origin HEAD:feat/digital-ink-icon-recorded-audio
